@@ -192,3 +192,10 @@ test('update replaces games and problems', () => {
   expect(s.c.tvState().mode).toBe('picker');
   expect(s.c.tvState().games).toHaveLength(2);
 });
+
+test('a phone saying hello again releases keys its old connection left down', async () => {
+  const s = await inGame();
+  s.c.phone('p', { t: 'btn', b: 'red', down: true });
+  s.c.phone('p', { t: 'hello', token: 'p' });
+  expect(s.bridge.events).toEqual(['down:1', 'up:1']);
+});

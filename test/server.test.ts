@@ -20,14 +20,14 @@ writeFileSync(join(webDir, 'index.html'), '<h1>buzz</h1>');
 const closers: (() => Promise<void>)[] = [];
 afterEach(async () => { while (closers.length) await closers.pop()!(); });
 
-async function start(hub = new FakeHub(), port = 0) {
-  const s = await startServer(hub, { webDir, port, maxPort: port === 0 ? 0 : port + 3 });
+async function start(hub = new FakeHub(), port = 0, heartbeatMs?: number) {
+  const s = await startServer(hub, { webDir, port, maxPort: port === 0 ? 0 : port + 3, heartbeatMs });
   closers.push(s.close);
   return { hub, s };
 }
 
-function connect(port: number) {
-  const ws = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+function connect(port: number, opts: WebSocket.ClientOptions = {}) {
+  const ws = new WebSocket(`ws://127.0.0.1:${port}/ws`, opts);
   const msgs: any[] = [];
   ws.on('message', d => msgs.push(JSON.parse(String(d))));
   closers.push(async () => ws.close());
@@ -119,4 +119,56 @@ test('root redirects to the phone page; covers are served from the covers dir', 
   expect(r.headers.get('location')).toBe('/phone/');
   expect(await (await fetch(`http://127.0.0.1:${s.port}/covers/SCUS-97597.png`)).text()).toBe('png');
   expect((await fetch(`http://127.0.0.1:${s.port}/covers/..%2findex.html`)).status).toBe(404);
+});
+
+test('a phone that goes silent (no pong) is dropped and disconnected', async () => {
+  const { hub, s } = await start(new FakeHub(), 0, 50);
+  const c = connect(s.port, { autoPong: false });
+  await c.open;
+  c.ws.send(JSON.stringify({ t: 'hello', token: 'tok' }));
+  await c.next(1);
+  await until(() => hub.calls.some(x => x[0] === 'disconnected'));
+  expect(hub.calls.at(-1)).toEqual(['disconnected', 'tok']);
+});
+
+test('a phone that answers pings stays connected', async () => {
+  const { hub, s } = await start(new FakeHub(), 0, 30);
+  const c = connect(s.port);
+  await c.open;
+  c.ws.send(JSON.stringify({ t: 'hello', token: 'tok' }));
+  await c.next(1);
+  await new Promise(r => setTimeout(r, 200));
+  expect(hub.calls.some(x => x[0] === 'disconnected')).toBe(false);
+});
+
+test('reconnecting closes the old socket without marking the phone disconnected', async () => {
+  const { hub, s } = await start();
+  const a = connect(s.port);
+  await a.open;
+  a.ws.send(JSON.stringify({ t: 'hello', token: 'tok' }));
+  await a.next(1);
+  const b = connect(s.port);
+  await b.open;
+  b.ws.send(JSON.stringify({ t: 'hello', token: 'tok' }));
+  await b.next(1);
+  await until(() => a.ws.readyState === WebSocket.CLOSED);
+  await new Promise(r => setTimeout(r, 30));
+  expect(hub.calls.filter(x => x[0] === 'disconnected')).toEqual([]);
+  b.ws.close();
+  await until(() => hub.calls.some(x => x[0] === 'disconnected'));
+});
+
+test('a second hello with a different token on one socket is ignored', async () => {
+  const { hub, s } = await start();
+  const c = connect(s.port);
+  await c.open;
+  c.ws.send(JSON.stringify({ t: 'hello', token: 'one' }));
+  await c.next(1);
+  c.ws.send(JSON.stringify({ t: 'hello', token: 'two' }));
+  c.ws.send(JSON.stringify({ t: 'claim', slot: 1 }));
+  await until(() => hub.calls.length >= 2);
+  expect(hub.calls).toEqual([
+    ['phone', 'one', { t: 'hello', token: 'one' }],
+    ['phone', 'one', { t: 'claim', slot: 1 }],
+  ]);
 });

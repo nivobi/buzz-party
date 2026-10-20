@@ -66,7 +66,7 @@ function listen(server: Server, port: number): Promise<boolean> {
 /** HTTP for the phone page plus a WebSocket at /ws. */
 export async function startServer(
   hub: PhoneHub,
-  o: { webDir: string; port: number; maxPort: number; coversDir?: string },
+  o: { webDir: string; port: number; maxPort: number; coversDir?: string; heartbeatMs?: number },
 ): Promise<{ port: number; close(): Promise<void> }> {
   const root = normalize(o.webDir + sep);
   const coversRoot = o.coversDir ? normalize(o.coversDir + sep) : null;
@@ -103,11 +103,18 @@ export async function startServer(
   const tvs = new Set<WebSocket>();
   const sendTv = (ws: WebSocket) => ws.send(JSON.stringify({ t: 'tv', state: hub.tvState!() }));
   // Attached only after listen succeeds: ws re-emits server errors as its own.
-  const wss = new WebSocketServer({ server, path: '/ws' });
+  const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096 });
   const send = (ws: WebSocket, token: string) => ws.send(JSON.stringify(hub.phoneState(token)));
+
+  // Sockets replaced by a newer connection from the same phone: their close
+  // must not mark the phone disconnected.
+  const superseded = new WeakSet<WebSocket>();
+  const alive = new WeakSet<WebSocket>();
 
   wss.on('connection', ws => {
     sockets.set(ws, null);
+    alive.add(ws);
+    ws.on('pong', () => alive.add(ws));
     ws.on('message', data => {
       if (hub.tvState && String(data) === '{"t":"tv"}') {
         tvs.add(ws);
@@ -118,8 +125,16 @@ export async function startServer(
       if (!msg) return;
       let token = sockets.get(ws);
       if (msg.t === 'hello') {
+        if (token && token !== msg.token) return;
         token = msg.token;
         sockets.set(ws, token);
+        for (const [other, t] of sockets) {
+          if (other !== ws && t === token) {
+            superseded.add(other);
+            sockets.delete(other);
+            other.terminate();
+          }
+        }
       }
       if (!token) return;
       hub.phone(token, msg);
@@ -129,9 +144,22 @@ export async function startServer(
       tvs.delete(ws);
       const token = sockets.get(ws);
       sockets.delete(ws);
-      if (token) hub.disconnected(token);
+      if (token && !superseded.has(ws)) hub.disconnected(token);
     });
   });
+
+  // A phone that vanishes from Wi-Fi never sends a close; notice it by pings
+  // so its held buttons get released.
+  const heartbeat = setInterval(() => {
+    for (const ws of sockets.keys()) {
+      if (!alive.has(ws)) {
+        ws.terminate();
+        continue;
+      }
+      alive.delete(ws);
+      ws.ping();
+    }
+  }, o.heartbeatMs ?? 2000);
 
   hub.onChange(() => {
     for (const [ws, token] of sockets) if (token && ws.readyState === ws.OPEN) send(ws, token);
@@ -144,6 +172,7 @@ export async function startServer(
     port: actual,
     close: () =>
       new Promise<void>(resolve => {
+        clearInterval(heartbeat);
         for (const ws of sockets.keys()) ws.terminate();
         wss.close();
         server.close(() => resolve());

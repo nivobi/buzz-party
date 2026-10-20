@@ -52,9 +52,12 @@ export class Controller {
 
   phone(token: string, msg: PhoneMsg): void {
     switch (msg.t) {
-      case 'hello':
-        this.d.slots.connect(token);
+      case 'hello': {
+        // A fresh connection holds nothing; drop keys an old one left down.
+        const slot = this.d.slots.connect(token);
+        if (slot !== null) this.d.presser.releaseAll(slot);
         return this.changed();
+      }
       case 'claim':
         if (this.d.slots.claim(token, msg.slot)) this.changed();
         return;
