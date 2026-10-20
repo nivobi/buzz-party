@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#14121f">
+  <title>Buzz Party</title>
+  <link rel="stylesheet" href="phone.css">
+</head>
+<body>
+  <main id="connecting" class="screen center">
+    <p class="big">Connecting…</p>
+  </main>
+
+  <main id="pick" class="screen" hidden>
+    <h1>Who are you?</h1>
+    <div id="slots" class="slots"></div>
+  </main>
+
+  <main id="buzzer" class="screen" hidden>
+    <header class="strip">
+      <span id="player">PLAYER 1</span>
+      <span id="status"></span>
+      <button id="menu-btn" class="menu-btn" aria-label="Menu">⋯</button>
+    </header>
+    <button class="btn red" data-b="red" aria-label="Red buzzer"></button>
+    <button class="btn bar blue" data-b="blue">BLUE</button>
+    <button class="btn bar orange" data-b="orange">ORANGE</button>
+    <button class="btn bar green" data-b="green">GREEN</button>
+    <button class="btn bar yellow" data-b="yellow">YELLOW</button>
+  </main>
+
+  <div id="menu" class="sheet" hidden>
+    <div class="sheet-body">
+      <button data-act="back">Back to games</button>
+      <button data-act="invite">Invite a player</button>
+      <button data-act="leave">Change player</button>
+      <button data-act="off">Turn off Buzz Party</button>
+      <button data-act="close" class="quiet">Close</button>
+    </div>
+  </div>
+
+  <div id="confirm" class="sheet" hidden>
+    <div class="sheet-body">
+      <p id="confirm-text"></p>
+      <button id="confirm-yes">Yes</button>
+      <button id="confirm-no" class="quiet">No</button>
+    </div>
+  </div>
+
+  <div id="invite" class="sheet" hidden>
+    <div class="sheet-body">
+      <p>Scan with your phone camera</p>
+      <img id="invite-qr" alt="Join QR code">
+      <p id="invite-url" class="small"></p>
+      <button data-act="close" class="quiet">Close</button>
+    </div>
+  </div>
+
+  <script src="phone.js"></script>
+</body>
+</html>
