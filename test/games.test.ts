@@ -34,3 +34,14 @@ test('titleFor knows every region and falls back to the file name', () => {
   expect(titleFor('SLUS-00001', 'My Game.iso')).toBe('My Game');
   expect(titleFor(null, 'Thing.chd')).toBe('Thing');
 });
+
+test('scanGames follows symlinks to disc images', async () => {
+  const { symlinkSync } = await import('node:fs');
+  const src = tmpDir();
+  writeFileSync(join(src, 'real.iso'), makeIso({ 'SYSTEM.CNF': 'BOOT2 = cdrom0:\\SCUS_975.97;1\n' }));
+  const dir = tmpDir();
+  symlinkSync(join(src, 'real.iso'), join(dir, 'Linked.iso'));
+  symlinkSync(join(src, 'missing.iso'), join(dir, 'Dangling.iso'));
+  const games = await scanGames(dir);
+  expect(games.map(g => g.serial)).toEqual(['SCUS-97597']);
+});

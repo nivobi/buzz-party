@@ -1,4 +1,4 @@
-import { readdir } from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { readSerial } from './iso.js';
 import { titleFor } from './titles.js';
@@ -23,8 +23,10 @@ export async function scanGames(dir: string): Promise<Game[]> {
   const games: Game[] = [];
   for (const e of entries) {
     const ext = extname(e.name).toLowerCase();
-    if (!e.isFile() || e.name.startsWith('.') || !DISC_EXTS.has(ext)) continue;
+    if (e.name.startsWith('.') || !DISC_EXTS.has(ext)) continue;
     const path = join(dir, e.name);
+    // Symlinks count if they point at a real file.
+    if (!(await stat(path).then(st => st.isFile(), () => false))) continue;
     const serial = ext === '.iso' ? await readSerial(path) : null;
     games.push({ id: serial ?? e.name, path, serial, title: titleFor(serial, e.name) });
   }

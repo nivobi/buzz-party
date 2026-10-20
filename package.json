@@ -6,19 +6,20 @@
   "scripts": {
     "build": "tsc -p .",
     "test": "vitest run",
-    "start": "npm run build && electron ."
+    "start": "npm run build && electron .",
+    "build:helper": "mkdir -p build && swiftc -O native/mac/buzzhelper.swift -o build/buzzhelper"
   },
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
     "@types/node": "26.6.5",
+    "@types/qrcode": "1.5.6",
     "@types/ws": "8.18.2",
     "electron": "44.9.1",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
-    "vitest": "5.0.5",
-    "@types/qrcode": "1.5.6"
+    "vitest": "5.0.5"
   },
   "dependencies": {
     "qrcode": "1.5.4",

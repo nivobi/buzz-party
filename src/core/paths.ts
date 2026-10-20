@@ -22,7 +22,7 @@ export function paths(home = homedir()): BuzzPaths {
 }
 
 export async function ensureFolders(p: BuzzPaths = paths()): Promise<void> {
-  for (const dir of [p.games, p.bios, p.covers, join(p.pcsx2Data, 'inis')]) {
+  for (const dir of [p.games, p.bios, p.covers, join(p.pcsx2Data, 'PCSX2', 'inis')]) {
     await mkdir(dir, { recursive: true });
   }
 }

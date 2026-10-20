@@ -2,13 +2,18 @@ import { execFile, spawn, type ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import type { KeyBridge, Rect } from '../bridge/types.js';
 import type { Game } from './games.js';
 import { buildPcsx2Ini } from './pcsx2-config.js';
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+/** PCSX2 treats `-datapath X` as the parent of its data root `X/PCSX2`. */
+export function pcsx2IniPath(dataDir: string): string {
+  return join(dataDir, 'PCSX2', 'inis', 'PCSX2.ini');
+}
 
 /** Path to the installed PCSX2, or null. */
 export function findPcsx2(): string | null {
@@ -60,8 +65,9 @@ export class Pcsx2Manager {
       biosFile: l.biosFile,
       startFullscreen: !l.tvBounds,
     });
-    await mkdir(join(this.o.dataDir, 'inis'), { recursive: true });
-    await writeFile(join(this.o.dataDir, 'inis', 'PCSX2.ini'), ini);
+    const iniPath = pcsx2IniPath(this.o.dataDir);
+    await mkdir(dirname(iniPath), { recursive: true });
+    await writeFile(iniPath, ini);
 
     // `open -W` stays alive until PCSX2 quits; going through the app bundle
     // keeps macOS Gatekeeper happy.

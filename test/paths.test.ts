@@ -21,3 +21,8 @@ test('folders live under ~/BuzzParty', () => {
     pcsx2Data: '/Users/x/BuzzParty/.pcsx2',
   });
 });
+
+test('PCSX2 reads its ini from <datapath>/PCSX2/inis', async () => {
+  const { pcsx2IniPath } = await import('../src/core/pcsx2-manager.js');
+  expect(pcsx2IniPath('/Users/x/BuzzParty/.pcsx2')).toBe('/Users/x/BuzzParty/.pcsx2/PCSX2/inis/PCSX2.ini');
+});
