@@ -159,7 +159,10 @@ export class Controller {
         this.changed();
       }
     } catch (e) {
-      this.launchError = `Couldn’t start the game: ${e instanceof Error ? e.message : String(e)}`;
+      // A launch cancelled by "Back to games" is not an error worth showing.
+      if (!(e instanceof Error && e.name === 'LaunchCancelled')) {
+        this.launchError = `Couldn’t start the game: ${e instanceof Error ? e.message : String(e)}`;
+      }
       this.gameEnded();
     }
   }

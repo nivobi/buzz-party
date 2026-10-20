@@ -10,9 +10,11 @@ class FakeRunner implements GameRunner {
   launched: Game[] = [];
   stops = 0;
   fail = false;
+  cancel = false;
   private exitCb: (() => void) | null = null;
   async launch(g: Game) {
     if (this.fail) throw new Error('PCSX2 did not start');
+    if (this.cancel) throw Object.assign(new Error('Stopped before the game started'), { name: 'LaunchCancelled' });
     this.launched.push(g);
   }
   async stop() { this.stops++; this.exitCb?.(); }
@@ -198,4 +200,14 @@ test('a phone saying hello again releases keys its old connection left down', as
   s.c.phone('p', { t: 'btn', b: 'red', down: true });
   s.c.phone('p', { t: 'hello', token: 'p' });
   expect(s.bridge.events).toEqual(['down:1', 'up:1']);
+});
+
+test('a cancelled launch goes home quietly, without an error', async () => {
+  const s = setup();
+  s.runner.cancel = true;
+  s.join('p', 1);
+  s.press('p', 'red');
+  await s.flush();
+  expect(s.c.tvState().mode).toBe('picker');
+  expect(s.c.tvState().problems).toEqual([]);
 });
