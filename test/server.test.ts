@@ -39,7 +39,7 @@ const until = async (f: () => boolean) => { while (!f()) await new Promise(r => 
 
 test('serves the phone page', async () => {
   const { s } = await start();
-  const res = await fetch(`http://127.0.0.1:${s.port}/`);
+  const res = await fetch(`http://127.0.0.1:${s.port}/index.html`);
   expect(await res.text()).toBe('<h1>buzz</h1>');
   expect(res.headers.get('content-type')).toMatch(/text\/html/);
 });
@@ -94,4 +94,29 @@ test('takes the next port when one is busy', async () => {
   closers.push(() => new Promise(r => blocker.close(() => r())));
   const { s } = await start(new FakeHub(), busy);
   expect(s.port).toBe(busy + 1);
+});
+
+test('the TV page subscribes with {t:"tv"} and gets tv state on every change', async () => {
+  const hub = new FakeHub() as FakeHub & { tvState(): unknown };
+  hub.tvState = () => ({ mode: 'picker', marker: 'tv' });
+  const { s } = await start(hub);
+  const c = connect(s.port);
+  await c.open;
+  c.ws.send(JSON.stringify({ t: 'tv' }));
+  expect(await c.next(1)).toEqual({ t: 'tv', state: { mode: 'picker', marker: 'tv' } });
+  hub.fire();
+  expect(await c.next(2)).toEqual({ t: 'tv', state: { mode: 'picker', marker: 'tv' } });
+  expect(hub.calls).toEqual([]);
+});
+
+test('root redirects to the phone page; covers are served from the covers dir', async () => {
+  const covers = tmpDir();
+  writeFileSync(join(covers, 'SCUS-97597.png'), 'png');
+  const s = await startServer(new FakeHub(), { webDir, port: 0, maxPort: 0, coversDir: covers });
+  closers.push(s.close);
+  const r = await fetch(`http://127.0.0.1:${s.port}/`, { redirect: 'manual' });
+  expect(r.status).toBe(302);
+  expect(r.headers.get('location')).toBe('/phone/');
+  expect(await (await fetch(`http://127.0.0.1:${s.port}/covers/SCUS-97597.png`)).text()).toBe('png');
+  expect((await fetch(`http://127.0.0.1:${s.port}/covers/..%2findex.html`)).status).toBe(404);
 });

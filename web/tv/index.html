@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Buzz Party</title>
+  <link rel="stylesheet" href="tv.css">
+</head>
+<body>
+  <main id="setup" class="screen" hidden>
+    <h1>Almost ready</h1>
+    <ul id="problems"></ul>
+    <p class="hint">The first time, macOS may ask to allow incoming network connections. Click <b>Allow</b> so phones can join.</p>
+  </main>
+
+  <main id="home" class="screen" hidden>
+    <section class="left">
+      <h1 id="home-title">Pick a game</h1>
+      <div id="games" class="games"></div>
+      <p id="home-hint" class="hint">Phones: <b class="c-blue">BLUE</b> / <b class="c-orange">ORANGE</b> to move · <b class="c-red">RED</b> to start</p>
+      <p id="home-error" class="error" hidden></p>
+    </section>
+    <aside class="right">
+      <img id="qr" alt="Join QR code">
+      <p class="join">Scan to join</p>
+      <p id="url" class="url"></p>
+      <div id="players" class="players"></div>
+    </aside>
+  </main>
+
+  <main id="launching" class="screen center" hidden>
+    <p class="big">Starting <span id="launch-title"></span>…</p>
+  </main>
+
+  <main id="game" class="screen" hidden></main>
+
+  <script src="tv.js"></script>
+</body>
+</html>

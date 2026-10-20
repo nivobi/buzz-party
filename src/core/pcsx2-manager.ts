@@ -73,7 +73,8 @@ export class Pcsx2Manager {
     // `open -W` stays alive until PCSX2 quits; going through the app bundle
     // keeps macOS Gatekeeper happy.
     const child = spawn('open', ['-n', '-W', '-a', this.o.appPath, '--args',
-      '-batch', '-nogui', '-datapath', this.o.dataDir, '--', game.path], { stdio: 'ignore' });
+      '-batch', '-nogui', l.tvBounds ? '-nofullscreen' : '-fullscreen',
+      '-datapath', this.o.dataDir, '--', game.path], { stdio: 'ignore' });
     this.child = child;
     child.on('exit', () => {
       if (this.child !== child) return;

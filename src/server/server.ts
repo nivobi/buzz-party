@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { BUTTONS, SLOTS } from '../shared/keymap.js';
-import type { PhoneMsg, PhoneState } from '../shared/protocol.js';
+import type { PhoneMsg, PhoneState, TvState } from '../shared/protocol.js';
 
 /** The part of the Controller the server talks to. */
 export interface PhoneHub {
@@ -11,6 +11,8 @@ export interface PhoneHub {
   disconnected(token: string): void;
   phoneState(token: string): PhoneState;
   onChange(cb: () => void): void;
+  /** Present when a TV page may subscribe (the real Controller). */
+  tvState?(): TvState;
 }
 
 const TYPES: Record<string, string> = {
@@ -22,6 +24,9 @@ const TYPES: Record<string, string> = {
   '.json': 'application/json',
   '.webmanifest': 'application/manifest+json',
   '.mp4': 'video/mp4',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
 };
 
 /** Accepts only well-formed phone messages; everything else is dropped. */
@@ -61,17 +66,28 @@ function listen(server: Server, port: number): Promise<boolean> {
 /** HTTP for the phone page plus a WebSocket at /ws. */
 export async function startServer(
   hub: PhoneHub,
-  o: { webDir: string; port: number; maxPort: number },
+  o: { webDir: string; port: number; maxPort: number; coversDir?: string },
 ): Promise<{ port: number; close(): Promise<void> }> {
   const root = normalize(o.webDir + sep);
+  const coversRoot = o.coversDir ? normalize(o.coversDir + sep) : null;
   const server = createServer(async (req, res) => {
     try {
       let path = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname);
+      if (path === '/') {
+        res.writeHead(302, { location: '/phone/' }).end();
+        return;
+      }
+      let base = root;
+      if (path.startsWith('/covers/')) {
+        if (!coversRoot) throw new Error('no covers');
+        base = coversRoot;
+        path = path.slice('/covers'.length);
+      }
       if (path.endsWith('/')) path += 'index.html';
-      const file = normalize(join(root, path));
-      if (!file.startsWith(root)) throw new Error('outside web dir');
+      const file = normalize(join(base, path));
+      if (!file.startsWith(base)) throw new Error('outside web dir');
       const body = await readFile(file);
-      res.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-cache' });
+      res.writeHead(200, { 'content-type': TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream', 'cache-control': 'no-cache' });
       res.end(body);
     } catch {
       res.writeHead(404).end('not found');
@@ -84,6 +100,8 @@ export async function startServer(
     port++;
   }
   const sockets = new Map<WebSocket, string | null>();
+  const tvs = new Set<WebSocket>();
+  const sendTv = (ws: WebSocket) => ws.send(JSON.stringify({ t: 'tv', state: hub.tvState!() }));
   // Attached only after listen succeeds: ws re-emits server errors as its own.
   const wss = new WebSocketServer({ server, path: '/ws' });
   const send = (ws: WebSocket, token: string) => ws.send(JSON.stringify(hub.phoneState(token)));
@@ -91,6 +109,11 @@ export async function startServer(
   wss.on('connection', ws => {
     sockets.set(ws, null);
     ws.on('message', data => {
+      if (hub.tvState && String(data) === '{"t":"tv"}') {
+        tvs.add(ws);
+        sendTv(ws);
+        return;
+      }
       const msg = parseMsg(String(data));
       if (!msg) return;
       let token = sockets.get(ws);
@@ -103,6 +126,7 @@ export async function startServer(
       if (msg.t === 'hello') send(ws, token);
     });
     ws.on('close', () => {
+      tvs.delete(ws);
       const token = sockets.get(ws);
       sockets.delete(ws);
       if (token) hub.disconnected(token);
@@ -111,6 +135,7 @@ export async function startServer(
 
   hub.onChange(() => {
     for (const [ws, token] of sockets) if (token && ws.readyState === ws.OPEN) send(ws, token);
+    for (const ws of tvs) if (ws.readyState === ws.OPEN) sendTv(ws);
   });
 
   const actual = (server.address() as { port: number }).port;
