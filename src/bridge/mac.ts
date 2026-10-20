@@ -58,7 +58,15 @@ export class MacBridge implements KeyBridge {
   }
 
   async isTrusted(prompt: boolean): Promise<boolean> {
-    return (await this.send(`trust ${prompt ? 1 : 0}`)) === 'yes';
+    const trusted = (await this.send(`trust ${prompt ? 1 : 0}`)) === 'yes';
+    if (!trusted) {
+      // macOS decides Accessibility trust once per process; a fresh helper
+      // is the only way to notice the user granting it.
+      const old = this.child;
+      this.start();
+      old?.kill();
+    }
+    return trusted;
   }
 
   dispose(): void {
