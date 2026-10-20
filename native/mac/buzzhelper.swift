@@ -26,12 +26,26 @@ func firstWindow(_ pid: pid_t) -> AXUIElement? {
     return w
 }
 
+/// Owner of the topmost normal window, read fresh from the window server.
+func frontWindowPid() -> pid_t? {
+    guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+            as? [[String: Any]] else { return nil }
+    for w in list where (w[kCGWindowLayer as String] as? Int) == 0 {
+        return w[kCGWindowOwnerPID as String] as? pid_t
+    }
+    return nil
+}
+
 func focus(_ pid: pid_t) -> Bool {
-    guard let app = NSRunningApplication(processIdentifier: pid) else { return false }
-    let ax = AXUIElementCreateApplication(pid)
-    AXUIElementSetAttributeValue(ax, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
-    if let w = firstWindow(pid) { AXUIElementPerformAction(w, kAXRaiseAction as CFString) }
-    return app.activate(options: [.activateAllWindows])
+    guard NSRunningApplication(processIdentifier: pid) != nil else { return false }
+    // Cheap check first, so a watchdog can call this every second.
+    if frontWindowPid() == pid { return true }
+    // macOS refuses NSRunningApplication.activate from a background process;
+    // System Events (Apple Events) can still bring a process to the front.
+    let script = "tell application \"System Events\" to set frontmost of (first process whose unix id is \(pid)) to true"
+    var error: NSDictionary?
+    NSAppleScript(source: script)?.executeAndReturnError(&error)
+    return error == nil
 }
 
 func place(_ pid: pid_t, _ x: Double, _ y: Double, _ w: Double, _ h: Double) -> Bool {

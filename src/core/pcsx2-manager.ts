@@ -47,6 +47,7 @@ export class Pcsx2Manager {
   private child: ChildProcess | null = null;
   private pid: number | null = null;
   private exitListeners: (() => void)[] = [];
+  private watchdog: ReturnType<typeof setInterval> | null = null;
 
   constructor(private o: { appPath: string; dataDir: string; template: string; bridge: KeyBridge }) {}
 
@@ -78,6 +79,8 @@ export class Pcsx2Manager {
       if (this.child !== child) return;
       this.child = null;
       this.pid = null;
+      if (this.watchdog) clearInterval(this.watchdog);
+      this.watchdog = null;
       for (const cb of this.exitListeners) cb();
     });
 
@@ -100,6 +103,9 @@ export class Pcsx2Manager {
       }
     }
     this.focus();
+    // Other apps (notifications, launchers) can grab focus mid-game; PCSX2
+    // only receives the buzzer keys while it is frontmost.
+    this.watchdog = setInterval(() => this.focus(), 1000);
   }
 
   focus(): void {
