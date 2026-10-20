@@ -8,3 +8,4 @@ dist/
 *.chd
 bios/
 games/
+.superpowers/

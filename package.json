@@ -1,0 +1,32 @@
+{
+  "name": "buzz-party",
+  "version": "1.0.0",
+  "description": "Phones as Buzz! buzzers for PS2 Buzz! Junior games in PCSX2",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "test": "vitest run",
+    "start": "npm run build && electron ."
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/ws": "8.18.2",
+    "electron": "44.9.1",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5",
+    "@types/qrcode": "1.5.6"
+  },
+  "dependencies": {
+    "qrcode": "1.5.4",
+    "ws": "8.22.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
+  },
+  "private": true
+}
