@@ -1,4 +1,5 @@
 import type { Rect } from '../bridge/types.js';
+import type { Mode } from '../shared/protocol.js';
 
 export interface DisplayInfo {
   id: number;
@@ -13,4 +14,12 @@ export function chooseDisplay<D extends DisplayInfo>(displays: D[]): { display: 
     if (ext) return { display: ext, external: true };
   }
   return { display: displays[0], external: false };
+}
+
+/**
+ * Whether to re-check setup, games and the network (for the join QR code).
+ * Not during a game: that would rescan discs while PCSX2 reads one.
+ */
+export function shouldRecheck(mode: Mode): boolean {
+  return mode === 'setup' || mode === 'picker' || mode === 'waiting';
 }

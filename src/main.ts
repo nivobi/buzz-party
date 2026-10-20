@@ -5,7 +5,7 @@ import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
 import QRCode from 'qrcode';
 import { Controller, type GameRunner, type Join } from './app/controller.js';
-import { chooseDisplay } from './app/display.js';
+import { chooseDisplay, shouldRecheck } from './app/display.js';
 import { FakeBridge } from './bridge/fake.js';
 import { MacBridge } from './bridge/mac.js';
 import { Presser } from './bridge/presser.js';
@@ -78,10 +78,18 @@ app.whenReady().then(async () => {
   controller.update(await check(true));
   setInterval(() => controller.tick(), 5000);
 
-  // Re-check setup problems every 5 s until they're fixed.
+  // Every 5 s outside a game: setup problems, new games, and the network
+  // (a Wi-Fi change must update the join QR code).
+  let checking = false;
   setInterval(async () => {
-    const mode = controller.tvState().mode;
-    if (mode === 'setup') controller.update(await check(false));
+    if (checking || !shouldRecheck(controller.tvState().mode)) return;
+    checking = true;
+    try {
+      const result = await check(false);
+      if (shouldRecheck(controller.tvState().mode)) controller.update(result);
+    } finally {
+      checking = false;
+    }
   }, 5000);
 
   const { display } = target();
