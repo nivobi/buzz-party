@@ -7,7 +7,8 @@
     "build": "tsc -p .",
     "test": "vitest run",
     "start": "npm run build && electron .",
-    "build:helper": "mkdir -p build && swiftc -O native/mac/buzzhelper.swift -o build/buzzhelper"
+    "build:helper": "mkdir -p build && swiftc -O native/mac/buzzhelper.swift -o build/buzzhelper",
+    "dist": "npm run build:helper && npm run build && electron-builder --mac dir && codesign --force --deep -s - \"dist-app/mac-arm64/Buzz Party.app\""
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +18,7 @@
     "@types/qrcode": "1.5.6",
     "@types/ws": "8.18.2",
     "electron": "44.9.1",
+    "electron-builder": "26.15.3",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
     "vitest": "5.0.5"
@@ -27,7 +29,41 @@
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
-    "fsevents@2.3.3": true
+    "fsevents@2.3.3": true,
+    "electron-winstaller": false
   },
-  "private": true
+  "private": true,
+  "productName": "Buzz Party",
+  "build": {
+    "appId": "com.nivobi.buzzparty",
+    "productName": "Buzz Party",
+    "directories": {
+      "output": "dist-app"
+    },
+    "files": [
+      "dist/**",
+      "web/**",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/buzzhelper",
+        "to": "buzzhelper"
+      },
+      {
+        "from": "resources/pcsx2",
+        "to": "pcsx2"
+      }
+    ],
+    "mac": {
+      "target": [
+        "dir"
+      ],
+      "category": "public.app-category.games",
+      "identity": null,
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "Buzz Party keeps the game in front of other windows during play."
+      }
+    }
+  }
 }
