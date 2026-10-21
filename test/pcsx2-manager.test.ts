@@ -30,7 +30,7 @@ function fakeOs(o: { pids: number[]; ourPid: number; appearsAfter: number; obeys
   return { deps, child, killed, state };
 }
 
-const game = { id: 'g', path: '/g.iso', serial: null, title: 'G' };
+const game = { id: 'g', path: '/g.iso', serial: null, title: 'G', languages: [] };
 const launchOpts = { biosDir: '/b', biosFile: 'b.bin' };
 const make = (deps: ProcessDeps) =>
   new Pcsx2Manager({ appPath: '/A.app', dataDir: tmpDir(), template: '[UI]\n', bridge: new FakeBridge(), deps });

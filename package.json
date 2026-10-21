@@ -8,7 +8,7 @@
     "test": "vitest run",
     "start": "npm run build && electron .",
     "build:helper": "mkdir -p build && swiftc -O native/mac/buzzhelper.swift -o build/buzzhelper",
-    "dist": "npm run build:helper && npm run build && electron-builder --mac dir && codesign --force --deep -s - \"dist-app/mac-arm64/Buzz Party.app\""
+    "dist": "npm run build:helper && npm run build && electron-builder --mac dir && codesign --force --deep -s \"Buzz Party Local Signing\" \"dist-app/mac-arm64/Buzz Party.app\""
   },
   "author": "",
   "license": "ISC",

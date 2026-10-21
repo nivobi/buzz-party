@@ -45,3 +45,19 @@ test('scanGames follows symlinks to disc images', async () => {
   const games = await scanGames(dir);
   expect(games.map(g => g.serial)).toEqual(['SCUS-97597']);
 });
+
+test('languagesFromName reads the No-Intro language list, Danish first', async () => {
+  const { languagesFromName } = await import('../src/core/titles.js');
+  expect(languagesFromName('Buzz! Junior - Monster Rumble (Europe) (En,Sv,No,Da,Fi,El,Pl,Ru,Cs).iso'))
+    .toEqual(['Dansk', 'English', 'Svenska', 'Norsk', 'Suomi', 'Ελληνικά', 'Polski', 'Русский', 'Čeština']);
+  expect(languagesFromName('Buzz! Junior - RoboJam (USA) (En,Fr,Es).iso')).toEqual(['English', 'Français', 'Español']);
+  expect(languagesFromName('RoboJam.iso')).toEqual([]);
+  expect(languagesFromName('Game (Europe) (Xx,En).iso')).toEqual(['English']);
+});
+
+test('scanGames attaches languages', async () => {
+  const dir = tmpDir();
+  writeFileSync(join(dir, 'Buzz (Europe) (En,Da).iso'), makeIso({ 'SYSTEM.CNF': 'BOOT2 = cdrom0:\\SCES_547.03;1\n' }));
+  const [g] = await scanGames(dir);
+  expect(g.languages).toEqual(['Dansk', 'English']);
+});

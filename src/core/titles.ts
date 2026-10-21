@@ -24,3 +24,19 @@ const TITLES: Record<string, string> = {
 export function titleFor(serial: string | null, fileName: string): string {
   return (serial && TITLES[serial]) || basename(fileName, extname(fileName));
 }
+
+const LANGUAGES: Record<string, string> = {
+  Da: 'Dansk', En: 'English', Sv: 'Svenska', No: 'Norsk', Fi: 'Suomi',
+  De: 'Deutsch', Fr: 'Français', Es: 'Español', It: 'Italiano', Nl: 'Nederlands',
+  Pt: 'Português', Pl: 'Polski', Ru: 'Русский', Cs: 'Čeština', El: 'Ελληνικά',
+  Hu: 'Magyar', Tr: 'Türkçe', Ja: '日本語',
+};
+
+/** `Game (Europe) (En,Da,Sv).iso` → `['Dansk', 'English', 'Svenska']`; Danish first. */
+export function languagesFromName(fileName: string): string[] {
+  const groups = [...fileName.matchAll(/\(([A-Z][a-z](?:,[A-Z][a-z])*)\)/g)];
+  const codes = groups.at(-1)?.[1].split(',') ?? [];
+  const known = codes.filter(c => LANGUAGES[c]);
+  known.sort((a, b) => Number(b === 'Da') - Number(a === 'Da'));
+  return known.map(c => LANGUAGES[c]);
+}
