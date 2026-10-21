@@ -10,6 +10,7 @@ import { FakeBridge } from './bridge/fake.js';
 import { MacBridge } from './bridge/mac.js';
 import { Presser } from './bridge/presser.js';
 import type { KeyBridge } from './bridge/types.js';
+import { CoverFetcher, findCover } from './core/covers.js';
 import { scanGames, type Game } from './core/games.js';
 import { defaultRouteInterface, pickLanIp } from './core/lan-ip.js';
 import { ensureFolders, paths, pickBios } from './core/paths.js';
@@ -50,6 +51,7 @@ app.whenReady().then(async () => {
     onExit: cb => manager?.onExit(cb),
   };
 
+  const coverFetcher = new CoverFetcher({ dir: p.covers });
   let port = PORT;
   async function check(promptTrust: boolean): Promise<{ games: Game[]; problems: string[]; join: Join | null }> {
     const problems: string[] = [];
@@ -57,6 +59,15 @@ app.whenReady().then(async () => {
     biosFile = pickBios(await readdir(p.bios).catch(() => []));
     if (!biosFile) problems.push(`Put your PS2 BIOS file in ${p.bios}`);
     const games = await scanGames(p.games);
+    for (const g of games) {
+      const file = g.serial ? await findCover(g.serial, p.covers) : null;
+      g.cover = file ? `/covers/${encodeURIComponent(file)}` : null;
+    }
+    // Missing covers download in the background; the picker updates when they land.
+    void Promise.all(games.filter(g => g.serial && !g.cover).map(g => coverFetcher.ensure(g.serial!)))
+      .then(async got => {
+        if (got.some(Boolean) && shouldRecheck(controller.tvState().mode)) controller.update(await check(false));
+      });
     if (games.length === 0) problems.push(`Put your games in ${p.games}`);
     if (!(await bridge.isTrusted(promptTrust))) {
       problems.push('Allow Buzz Party in System Settings → Privacy & Security → Accessibility');

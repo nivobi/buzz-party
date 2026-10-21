@@ -17,7 +17,8 @@
     for (const s of ['setup', 'home', 'launching', 'game']) $(s).hidden = s !== id;
   }
 
-  let lastGamesKey = '';
+  let lastSelected = null;
+  let lastKey = '';
 
   function render(s) {
     if (s.mode === 'setup') {
@@ -30,45 +31,70 @@
     }
     if (s.mode === 'game') return show('game');
 
-    const waiting = s.mode === 'waiting';
-    $('home-title').textContent = waiting ? 'Ready to play' : 'Pick a game';
-    $('home-hint').innerHTML = waiting
-      ? 'Grab your phones, then press <b class="c-red">RED</b> to start'
-      : 'Phones: <b class="c-blue">BLUE</b> / <b class="c-orange">ORANGE</b> to move · <b class="c-red">RED</b> to start';
+    const n = s.games.length;
+    const sel = Math.min(s.selected, n - 1);
+    $('home-hint').innerHTML = n > 1
+      ? '◀ <b class="c-blue">BLUE</b> · <b class="c-orange">ORANGE</b> ▶ · <b class="c-red">RED</b> to play'
+      : 'Grab your phones, then press <b class="c-red">RED</b> to start';
+
+    // Rebuild the carousel only when something visible changed.
+    const key = JSON.stringify([sel, s.games.map(g => [g.id, g.cover])]);
+    if (key !== lastKey) {
+      lastKey = key;
+      // Always three places so the picked game sits dead centre; with two
+      // games the left place stays empty.
+      const items = [-1, 0, 1].map(off => {
+        if (n === 1 && off !== 0) return spacer();
+        if (n === 2 && off === -1) return spacer();
+        const i = (sel + off + n) % n;
+        return cover(s.games[i], i, off === 0);
+      });
+      $('carousel').replaceChildren(...items);
+      if (lastSelected !== null && lastSelected !== sel && n > 1) {
+        const forward = (sel - lastSelected + n) % n === 1;
+        const c = $('carousel');
+        c.classList.remove('slide-next', 'slide-prev');
+        void c.offsetWidth;
+        c.classList.add(forward ? 'slide-next' : 'slide-prev');
+      }
+      lastSelected = sel;
+    }
+    const g = s.games[sel];
+    $('game-title').textContent = g?.title ?? '';
+    $('game-langs').textContent = g?.languages?.length ? g.languages.join(' · ') : '';
     $('home-error').hidden = s.problems.length === 0;
     $('home-error').textContent = s.problems.join(' ');
-
-    const key = s.games.map(g => g.id).join('|');
-    if (key !== lastGamesKey) {
-      lastGamesKey = key;
-      $('games').replaceChildren(...s.games.map((g, i) => card(g, i)));
-    }
-    [...$('games').children].forEach((el, i) => el.classList.toggle('selected', !waiting && i === s.selected));
-    $('games').children[s.selected]?.scrollIntoView({ block: 'nearest' });
 
     if (s.qr) $('qr').src = s.qr;
     $('url').textContent = s.joinUrl ?? '';
     $('players').replaceChildren(...s.slots.map(p => {
       const el = document.createElement('div');
       el.className = `player p${p.slot}` + (p.taken ? ' joined' : '') + (p.taken && !p.connected ? ' away' : '');
-      el.textContent = p.taken ? `Player ${p.slot}` : `Player ${p.slot} – free`;
+      el.textContent = p.taken ? `Player ${p.slot}` : `${p.slot} – free`;
       return el;
     }));
     show('home');
   }
 
-  function card(g, i) {
+  function spacer() {
     const el = document.createElement('div');
-    el.className = `card c${i % 4}`;
-    if (g.serial) {
+    el.className = 'cover side spacer';
+    return el;
+  }
+
+  function cover(g, i, center) {
+    const el = document.createElement('div');
+    el.className = `cover ${center ? 'center' : 'side'}`;
+    if (g.cover) {
       const img = new Image();
-      const exts = ['png', 'jpg', 'jpeg', 'webp'];
-      let n = 0;
-      img.onerror = () => { if (++n < exts.length) img.src = `/covers/${g.serial}.${exts[n]}`; else img.remove(); };
-      img.src = `/covers/${g.serial}.${exts[0]}`;
+      img.alt = g.title;
+      img.src = g.cover;
+      img.onerror = () => { img.remove(); el.classList.add('card', `c${i % 4}`); el.textContent = g.title; };
       el.append(img);
+    } else {
+      el.classList.add('card', `c${i % 4}`);
+      el.textContent = g.title;
     }
-    el.append(Object.assign(document.createElement('span'), { textContent: g.title }));
     return el;
   }
 

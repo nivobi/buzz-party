@@ -10,6 +10,8 @@ export interface Game {
   title: string;
   /** From the file name's language list, e.g. `['Dansk', 'English']`. */
   languages: string[];
+  /** URL of the cover image on the local server, once there is one. */
+  cover?: string | null;
 }
 
 const DISC_EXTS = new Set(['.iso', '.chd', '.cso', '.bin', '.gz']);

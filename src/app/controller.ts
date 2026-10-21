@@ -102,6 +102,7 @@ export class Controller {
       slots: this.d.slots.view(),
       joinUrl: this.d.join?.url ?? '',
       qr: this.d.join?.qr ?? '',
+      selectedTitle: this.mode === 'setup' ? null : (this.current ?? this.d.games[this.selected])?.title ?? null,
     };
   }
 

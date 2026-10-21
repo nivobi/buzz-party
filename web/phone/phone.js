@@ -62,7 +62,12 @@
       return;
     }
     $('player').textContent = `PLAYER ${state.you}`;
-    $('status').textContent = STATUS[state.mode] ?? '';
+    const game = state.selectedTitle ? state.selectedTitle.replace(/^Buzz! Junior: /, '') : '';
+    $('status').textContent =
+      state.mode === 'picker' && game ? `◀ ${game} ▶` :
+      state.mode === 'waiting' && game ? `${game} – press RED` :
+      (state.mode === 'game' || state.mode === 'launching') && game ? game :
+      STATUS[state.mode] ?? '';
     document.querySelector('.strip').style.setProperty('--c', SLOT_COLORS[state.you]);
     show('buzzer');
     $('invite-qr').src = state.qr;

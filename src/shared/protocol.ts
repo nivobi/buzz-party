@@ -18,6 +18,8 @@ export type PhoneState = {
   slots: SlotView[];
   joinUrl: string;
   qr: string;
+  /** The game the picker points at, so phones can show it. */
+  selectedTitle: string | null;
 };
 
 export type TvState = {

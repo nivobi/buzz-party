@@ -4,7 +4,7 @@ import { Presser } from '../src/bridge/presser.js';
 import type { Game } from '../src/core/games.js';
 import { SlotManager } from '../src/core/slots.js';
 
-const game = (title: string): Game => ({ id: title, path: `/g/${title}.iso`, serial: null, title });
+const game = (title: string): Game => ({ id: title, path: `/g/${title}.iso`, serial: null, title, languages: [] });
 
 class FakeRunner implements GameRunner {
   launched: Game[] = [];
@@ -210,4 +210,16 @@ test('a cancelled launch goes home quietly, without an error', async () => {
   await s.flush();
   expect(s.c.tvState().mode).toBe('picker');
   expect(s.c.tvState().problems).toEqual([]);
+});
+
+test('phones see the name of the selected game', () => {
+  const s = setup();
+  s.join('p', 1);
+  expect(s.c.phoneState('p').selectedTitle).toBe('A');
+  s.press('p', 'orange');
+  expect(s.c.phoneState('p').selectedTitle).toBe('B');
+  const solo = setup([game('Solo')]);
+  expect(solo.c.phoneState('x').selectedTitle).toBe('Solo');
+  const none = setup([], ['no games']);
+  expect(none.c.phoneState('x').selectedTitle).toBeNull();
 });
