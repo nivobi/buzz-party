@@ -11,8 +11,24 @@ own before the next one starts.
 - Buzz! Junior titles recognised by disc ID (all regions).
 - Played and working: RoboJam with one phone on the Mac's own screen.
 
+## Picker update (done 2026-10-21)
+
+- Carousel game picker: big centred cover with a yellow glow, neighbours dimmed
+  at the sides, blue/orange slides (wraps around), red plays.
+- Real cover art, downloaded once per disc from the community collection PCSX2
+  uses, into `~/BuzzParty/Covers`; your own image always wins; a coloured name
+  card stands in when there's no cover or no internet.
+- Big game name with a language line underneath (from the file name, Danish
+  first), so e.g. US and Danish versions are easy to tell apart.
+- Phones show the selected game in their status line.
+- Builds signed with a local self-signed certificate, so macOS keeps the
+  Accessibility permission across rebuilds.
+
 ## 1. Ready for family game night
 
+- [x] First Danish game: Buzz! Junior: Monster Rumble (EU, with Dansk).
+- [ ] Start Monster Rumble and check its language menu offers Dansk; if it
+      follows the console language instead, set PCSX2's system language.
 - [ ] Rip the family's own Buzz! Junior discs to ISO (DVD drive from the old PC,
       in the desktop with ImgBurn or over USB to the Mac).
 - [ ] Rehearsal on the TV over HDMI: extended desktop and mirrored.
@@ -32,6 +48,9 @@ own before the next one starts.
   - [ ] Don't list stray `.bin` files as games; better titles for `.iso.gz`.
   - [ ] Phone invite screen: hide the QR when there's no join address.
   - [ ] Look into a rare flaky server test (hello → close).
+- [ ] Watch for Mac freezes: one kernel panic (WindowServer) happened with
+      Buzz Party already closed, one freeze during a PCSX2 test. If it happens
+      during a game, note the time and try PCSX2's Vulkan or software renderer.
 - [ ] App icon.
 
 ## 2. Windows
@@ -57,8 +76,9 @@ own before the next one starts.
       people ask for on Reddit / PCSX2 forums.
 - [ ] README with setup guide (PCSX2, own BIOS dump, ripping own discs).
 - [ ] Pick a license.
-- [ ] Signed builds (Apple Developer ID) so macOS doesn't reset permissions and
-      warn on download.
+- [ ] Signed + notarized builds (Apple Developer ID) so other people's Macs
+      don't warn on download. (On this Mac, a local certificate already keeps
+      permissions across rebuilds.)
 - [ ] Never ship a BIOS or game images; link to PCSX2's legal BIOS-dumping guide.
 
 ## 5. PS3 Buzz! games (RPCS3)
