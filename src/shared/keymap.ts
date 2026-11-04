@@ -31,6 +31,15 @@ export const MAC_KEYCODES: Record<KeyName, number> = {
   B: 0x0b, N: 0x2d, G: 0x05, H: 0x04,
 };
 
+/** Linux evdev key codes (KEY_* in linux/input-event-codes.h). */
+export const LINUX_KEYCODES: Record<KeyName, number> = {
+  '1': 2, '2': 3, '3': 4, '4': 5,
+  Q: 16, W: 17, E: 18, R: 19,
+  A: 30, S: 31, D: 32, F: 33,
+  Z: 44, X: 45, C: 46, V: 47,
+  B: 48, N: 49, G: 34, H: 35,
+};
+
 export function pcsx2BindingName(slot: Slot, button: Button): string {
   return `BuzzDevice_${button[0].toUpperCase()}${button.slice(1)}${slot}`;
 }

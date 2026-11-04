@@ -7,6 +7,7 @@ import QRCode from 'qrcode';
 import { Controller, type GameRunner, type Join } from './app/controller.js';
 import { chooseDisplay, shouldRecheck } from './app/display.js';
 import { FakeBridge } from './bridge/fake.js';
+import { LinuxBridge } from './bridge/linux.js';
 import { MacBridge } from './bridge/mac.js';
 import { Presser } from './bridge/presser.js';
 import type { KeyBridge } from './bridge/types.js';
@@ -37,7 +38,10 @@ app.whenReady().then(async () => {
   let lang: Lang | null = (await readSettings(settingsFile)).language ?? null;
   const t = translator(loadDictionaries(webDir), () => lang);
 
-  const bridge: KeyBridge = process.platform === 'darwin' ? new MacBridge(helperPath) : new FakeBridge();
+  const bridge: KeyBridge =
+    process.platform === 'darwin' ? new MacBridge(helperPath)
+    : process.platform === 'linux' ? new LinuxBridge(helperPath)
+    : new FakeBridge();
   const presser = new Presser(bridge, { minHoldMs: 50 });
   const slots = new SlotManager({ now: Date.now, releaseAfterMs: 90_000 });
   const pcsx2Path = findPcsx2();
