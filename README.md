@@ -8,8 +8,8 @@ buzzer (red button plus blue, orange, green and yellow). Underneath it runs the
 [PCSX2](https://pcsx2.net) emulator with its own settings, so nobody has to
 touch an emulator menu.
 
-> Status: works on macOS. A Linux "console box" build and Windows support are
-> planned, see the [roadmap](ROADMAP.md).
+> Status: works on macOS. **Linux support is experimental** (see
+> [Linux](#linux-experimental)). Windows is planned, see the [roadmap](ROADMAP.md).
 
 ## How it works
 
@@ -23,7 +23,7 @@ touch an emulator menu.
 
 ## What you need
 
-- A Mac. Linux and Windows are not supported yet.
+- A Mac, or a Linux PC (experimental). Windows is not supported yet.
 - [PCSX2](https://pcsx2.net) installed (`brew install --cask pcsx2`).
 - A PS2 BIOS dumped from a console you own.
 - Your own Buzz! Junior discs, ripped to `.iso` (or `.chd`, `.cso`, `.gz`).
@@ -60,6 +60,50 @@ Then:
 Controls on a phone while picking a game: **blue** goes left, **orange** goes
 right, **red** plays.
 
+## Linux (experimental)
+
+The Linux support is written and unit-tested but has **not been tried on real
+hardware yet**. It is meant for a small "console" PC that boots straight into
+the app. Expect rough edges and please report what you find.
+
+What you need:
+
+- An **X11 session** (Xorg with a light window manager such as Openbox). Wayland
+  is not supported: window focus and placement use `xdotool`.
+- `xdotool`, a C compiler (`cc`) to build the key helper, and `fuse2` if you use
+  an AppImage.
+- The [PCSX2](https://pcsx2.net) **AppImage**. Buzz Party looks for it in
+  `/opt/pcsx2`, `~/Applications`, `~/BuzzParty`, `~/.local/bin` and
+  `/usr/local/bin` (newest file name wins), then for `pcsx2-qt` or `pcsx2` on
+  the PATH. Set `PCSX2_PATH` to point at a specific file.
+- Your BIOS and games in `~/BuzzParty`, same as on macOS.
+
+Key presses reach PCSX2 through a virtual keyboard made with `/dev/uinput`, so
+your user needs write access to it:
+
+```sh
+echo uinput | sudo tee /etc/modules-load.d/uinput.conf
+sudo modprobe uinput
+echo 'KERNEL=="uinput", GROUP="input", MODE="0660"' | sudo tee /etc/udev/rules.d/99-uinput.rules
+sudo udevadm control --reload && sudo udevadm trigger
+sudo usermod -aG input "$USER"   # then log out and back in
+```
+
+Build the key helper and run the app from source:
+
+```sh
+npm install
+npm run build:helper:linux
+npm start
+```
+
+If something is missing, the TV tells you (for example when PCSX2 is not found
+or `/dev/uinput` is not writable). There is no packaged Linux build yet.
+
+For a boot-straight-into-the-app setup, log in automatically on a minimal X11
+session and start the app from its autostart (for example `~/.xinitrc` running
+Openbox and then `npm start`). Turn off screen blanking with `xset s off -dpms`.
+
 ## Languages
 
 The UI is available in **English** and **Danish (Dansk)**. On first run the TV
@@ -85,6 +129,7 @@ npm install
 npm test            # vitest
 npm start           # builds TypeScript and runs the app with Electron
 npm run build:helper  # builds the native key helper (macOS, needs swiftc)
+npm run build:helper:linux  # the same for Linux (needs cc)
 npm run dist        # packages a signed macOS app into dist-app/
 ```
 
