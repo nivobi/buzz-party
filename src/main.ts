@@ -21,6 +21,11 @@ import { readSettings, writeSettings } from './core/settings.js';
 import { SlotManager } from './core/slots.js';
 import { startServer } from './server/server.js';
 
+// Some Linux setups (e.g. Ubuntu 24.04) block Chromium's sandbox for unpackaged
+// or unpacked apps. BUZZ_NO_SANDBOX=1 turns it off; the app only shows its own
+// local pages, so this is acceptable for a dedicated console box.
+if (process.platform === 'linux' && process.env.BUZZ_NO_SANDBOX === '1') app.commandLine.appendSwitch('no-sandbox');
+
 const PORT = 8420;
 const MAX_PORT = 8429;
 

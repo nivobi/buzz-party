@@ -97,12 +97,32 @@ npm run build:helper:linux
 npm start
 ```
 
+Or make a packaged copy. Build it **on the Linux machine**, because the key
+helper is compiled there:
+
+```sh
+npm install
+npm run dist:linux                                  # output: dist-app/linux-unpacked
+sudo cp -r dist-app/linux-unpacked /opt/buzz-party
+/opt/buzz-party/buzz-party
+```
+
+If Electron refuses to start with a sandbox error, either set the sandbox
+helper up (`sudo chown root /opt/buzz-party/chrome-sandbox && sudo chmod 4755
+/opt/buzz-party/chrome-sandbox`) or start the app with `BUZZ_NO_SANDBOX=1`. The
+app only shows its own local pages, so that is acceptable for a dedicated box.
+
 If something is missing, the TV tells you (for example when PCSX2 is not found
-or `/dev/uinput` is not writable). There is no packaged Linux build yet.
+or `/dev/uinput` is not writable).
 
 For a boot-straight-into-the-app setup, log in automatically on a minimal X11
-session and start the app from its autostart (for example `~/.xinitrc` running
-Openbox and then `npm start`). Turn off screen blanking with `xset s off -dpms`.
+session and start the app from `~/.xinitrc`:
+
+```sh
+xset s off -dpms
+openbox &
+exec /opt/buzz-party/buzz-party
+```
 
 ## Languages
 
@@ -131,6 +151,7 @@ npm start           # builds TypeScript and runs the app with Electron
 npm run build:helper  # builds the native key helper (macOS, needs swiftc)
 npm run build:helper:linux  # the same for Linux (needs cc)
 npm run dist        # packages a signed macOS app into dist-app/
+npm run dist:linux  # packages an unpacked Linux app into dist-app/linux-unpacked (build on Linux)
 ```
 
 Notes:

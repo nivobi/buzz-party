@@ -9,10 +9,11 @@
     "start": "npm run build && electron .",
     "build:helper": "mkdir -p build && swiftc -O native/mac/buzzhelper.swift -o build/buzzhelper",
     "build:helper:linux": "mkdir -p build && cc -O2 native/linux/buzzhelper.c -o build/buzzhelper",
-    "dist": "npm run build:helper && npm run build && electron-builder --mac dir && codesign --force --deep -s \"Buzz Party Local Signing\" \"dist-app/mac-arm64/Buzz Party.app\""
+    "dist": "npm run build:helper && npm run build && electron-builder --mac dir && codesign --force --deep -s \"Buzz Party Local Signing\" \"dist-app/mac-arm64/Buzz Party.app\"",
+    "dist:linux": "npm run build:helper:linux && npm run build && electron-builder --linux dir"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "devDependencies": {
     "@types/node": "26.6.5",
@@ -48,10 +49,6 @@
     ],
     "extraResources": [
       {
-        "from": "build/buzzhelper",
-        "to": "buzzhelper"
-      },
-      {
         "from": "resources/pcsx2",
         "to": "pcsx2"
       }
@@ -64,7 +61,31 @@
       "identity": null,
       "extendInfo": {
         "NSAppleEventsUsageDescription": "Buzz Party keeps the game in front of other windows during play."
-      }
+      },
+      "extraResources": [
+        {
+          "from": "build/buzzhelper",
+          "to": "buzzhelper"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Game",
+      "executableName": "buzz-party",
+      "extraResources": [
+        {
+          "from": "build/buzzhelper",
+          "to": "buzzhelper"
+        }
+      ]
     }
   }
 }
