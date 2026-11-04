@@ -62,9 +62,11 @@ right, **red** plays.
 
 ## Linux (experimental)
 
-The Linux support is written and unit-tested but has **not been tried on real
-hardware yet**. It is meant for a small "console" PC that boots straight into
-the app. Expect rough edges and please report what you find.
+The Linux support is meant for a small "console" PC that boots straight into
+the app. The key bridge (the C helper and `LinuxBridge`) and the test suite are
+verified on Ubuntu 24.04 (x86-64). Starting PCSX2, window focus and the packaged
+app have **not been tried on a real desktop yet**, so expect rough edges and
+please report what you find.
 
 What you need:
 

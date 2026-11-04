@@ -116,3 +116,11 @@ test('Linux key codes cover the same keys as macOS, with no duplicates', () => {
   const codes = Object.values(LINUX_KEYCODES);
   expect(new Set(codes).size).toBe(codes.length);
 });
+
+test('the C helper allows every key the app presses, plus Alt and Enter', () => {
+  const c = readFileSync(join(__dirname, '..', 'native', 'linux', 'buzzhelper.c'), 'utf8');
+  const list = /ALLOWED\[\] = \{([\s\S]*?)\};/.exec(c)![1].replace(/\/\/.*$/gm, '');
+  const allowed = new Set(list.split(',').map(x => x.trim()).filter(Boolean));
+  for (const code of Object.values(LINUX_KEYCODES)) expect(allowed.has(String(code))).toBe(true);
+  expect(allowed.has('KEY_LEFTALT') && allowed.has('KEY_ENTER')).toBe(true);
+});

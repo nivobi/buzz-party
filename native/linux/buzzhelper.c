@@ -1,6 +1,6 @@
 // Buzz Party Linux helper: a virtual keyboard made through /dev/uinput.
 // One command per stdin line, one reply line on stdout (same style as the macOS helper).
-//   down <keycode> | up <keycode>   -> ok | fail   (Linux KEY_* codes)
+//   down <keycode> | up <keycode>   -> ok | fail   (Linux KEY_* codes; only the buzzer keys are allowed)
 //   fullscreen                      -> ok | fail   (Alt+Enter, PCSX2's hotkey)
 //   trust <0|1>                     -> yes | no    (yes = /dev/uinput is usable)
 // Build: cc -O2 native/linux/buzzhelper.c -o build/buzzhelper
@@ -14,6 +14,26 @@
 #include <unistd.h>
 
 static int fd = -1;
+
+// Only the keys Buzz Party presses (keep in sync with LINUX_KEYCODES in
+// src/shared/keymap.ts), plus Left Alt and Enter for the fullscreen hotkey.
+// Declaring nothing else keeps the virtual keyboard from being able to send
+// things like power or SysRq.
+static const int ALLOWED[] = {
+  2, 3, 4, 5,          // 1 2 3 4
+  16, 17, 18, 19,      // Q W E R
+  30, 31, 32, 33,      // A S D F
+  34, 35,              // G H
+  44, 45, 46, 47,      // Z X C V
+  48, 49,              // B N
+  KEY_LEFTALT, KEY_ENTER,
+};
+#define N_ALLOWED ((int)(sizeof ALLOWED / sizeof ALLOWED[0]))
+
+static int allowed(int code) {
+  for (int i = 0; i < N_ALLOWED; i++) if (ALLOWED[i] == code) return 1;
+  return 0;
+}
 
 static int emit(int type, int code, int value) {
   struct input_event ev;
@@ -39,7 +59,7 @@ static int ensure_device(void) {
     close(f);
     return 0;
   }
-  for (int c = 1; c < 256; c++) ioctl(f, UI_SET_KEYBIT, c);
+  for (int i = 0; i < N_ALLOWED; i++) ioctl(f, UI_SET_KEYBIT, ALLOWED[i]);
   struct uinput_setup us;
   memset(&us, 0, sizeof us);
   us.id.bustype = BUS_USB;
@@ -71,7 +91,7 @@ int main(void) {
     } else if (strcmp(cmd, "trust") == 0) {
       reply(ensure_device() ? "yes" : "no");
     } else if (strcmp(cmd, "down") == 0 || strcmp(cmd, "up") == 0) {
-      if (args == 2 && n >= 1 && n < 256 && ensure_device()) reply(key(n, cmd[0] == 'd') ? "ok" : "fail");
+      if (args == 2 && allowed(n) && ensure_device()) reply(key(n, cmd[0] == 'd') ? "ok" : "fail");
       else reply("fail");
     } else if (strcmp(cmd, "fullscreen") == 0) {
       int ok = ensure_device() && key(KEY_LEFTALT, 1) && key(KEY_ENTER, 1) && key(KEY_ENTER, 0) && key(KEY_LEFTALT, 0);
