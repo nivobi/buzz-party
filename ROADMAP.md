@@ -24,6 +24,21 @@ own before the next one starts.
 - Builds signed with a local self-signed certificate, so macOS keeps the
   Accessibility permission across rebuilds.
 
+## Languages, intro, sounds and Linux (done 2026-11-04)
+
+- English and Danish UI, chosen on first run with flags (on the TV and on
+  phones) and remembered in `~/BuzzParty/settings.json`; changeable from the
+  phone menu. New languages are one JSON file plus a flag
+  (`web/i18n/`, `web/flags/`).
+- Startup intro (glowing towers, title, chime) and small sounds when browsing
+  and picking a game, all generated in code.
+- README and MIT license.
+- Linux, first pass: a `/dev/uinput` key helper and `LinuxBridge`, finding and
+  starting PCSX2 (AppImage or `pcsx2-qt`), `xdotool` focus/placement, Linux
+  setup messages, and `npm run dist:linux`. The key bridge and the whole test
+  suite are verified on Ubuntu 24.04 (x86-64); everything that needs a desktop
+  and a GPU is not tried yet (see section 6).
+
 ## 1. Ready for family game night
 
 - [x] First Danish game: Buzz! Junior: Monster Rumble (EU, with Dansk).
@@ -74,12 +89,14 @@ own before the next one starts.
 
 - [ ] Prior-art check: existing phone-buzzer projects for PCSX2/RPCS3, and what
       people ask for on Reddit / PCSX2 forums.
-- [ ] README with setup guide (PCSX2, own BIOS dump, ripping own discs).
-- [ ] Pick a license.
+- [x] README with setup guide. Still to add: how to dump your own BIOS and rip
+      your own discs (link to PCSX2's guides), and screenshots.
+- [x] Pick a license (MIT).
 - [ ] Signed + notarized builds (Apple Developer ID) so other people's Macs
       don't warn on download. (On this Mac, a local certificate already keeps
       permissions across rebuilds.)
-- [ ] Never ship a BIOS or game images; link to PCSX2's legal BIOS-dumping guide.
+- [x] Never ship a BIOS or game images (`.gitignore` blocks them; the README says so).
+- [ ] Link to PCSX2's legal BIOS-dumping guide from the README.
 
 ## 5. PS3 Buzz! games (RPCS3)
 
@@ -89,8 +106,26 @@ own before the next one starts.
 
 ## 6. Console mode
 
-- [ ] Cheap mini PC running Linux that boots straight into Buzz Party (kiosk,
-      auto-login, no desktop).
-- [ ] Linux input bridge (uinput) and PCSX2 bundled.
-- [ ] "Turn off" from a phone shuts the machine down.
+A cheap mini PC running Linux that boots straight into Buzz Party (kiosk,
+auto-login, no desktop).
+
+- [x] Linux input bridge (`/dev/uinput`), verified on real Linux.
+- [x] Linux PCSX2 launch (AppImage / `pcsx2-qt`) and packaging code.
+- [ ] Verify on a real Linux desktop with a GPU: PCSX2 starts and picks Vulkan,
+      sound over HDMI, the game window goes fullscreen on the TV, `xdotool`
+      focus and placement, the packaged app starts (sandbox).
+- [ ] Check the PCSX2 AppImage process id matches the one the app tracks.
+- [ ] Auto-login and start script for a minimal install; document it in the README.
+- [ ] "Turn off" from a phone shuts the machine down (kiosk setup).
+- [ ] First-run language chooser works with only a phone or a mouse today; add
+      keyboard/remote navigation.
+- [ ] Decide whether the intro plays on every launch or only on a cold boot.
+- [ ] Wayland support for focus/placement (today needs an X11 session).
 - [ ] For personal use: never give devices away with a BIOS or games on them.
+
+## 7. Polish and ideas
+
+- [ ] More UI languages (German, Swedish, Norwegian...); a native-speaker pass
+      over the Danish texts.
+- [ ] The "Scan for at deltage" text in the TV join box wraps onto two lines; tune the layout.
+- [ ] A setting for sound effects volume or off.
