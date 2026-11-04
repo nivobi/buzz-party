@@ -2,9 +2,10 @@
 (() => {
   const $ = id => document.getElementById(id);
   let retry = 0;
+  let ws = null;
 
   function connect() {
-    const ws = new WebSocket(`ws://${location.host}/ws`);
+    ws = new WebSocket(`ws://${location.host}/ws`);
     ws.onopen = () => { retry = 0; ws.send('{"t":"tv"}'); };
     ws.onmessage = e => {
       const msg = JSON.parse(e.data);
@@ -14,28 +15,49 @@
   }
 
   function show(id) {
-    for (const s of ['setup', 'home', 'launching', 'game']) $(s).hidden = s !== id;
+    for (const s of ['language', 'setup', 'home', 'launching', 'game']) $(s).hidden = s !== id;
   }
 
   let lastSelected = null;
   let lastKey = '';
+  let lastMode = null;
 
+  // Messages are handled one at a time so a language file finishes loading
+  // before the screen that needs it is drawn.
+  let queue = Promise.resolve();
   function render(s) {
+    queue = queue.then(() => renderNow(s)).catch(() => {});
+  }
+
+  let chooserDrawn = false;
+  async function renderNow(s) {
+    if (s.lang === null) {
+      if (!chooserDrawn) {
+        chooserDrawn = true;
+        await i18n.renderChooser($('tv-langs'), code => ws?.send(JSON.stringify({ t: 'lang', lang: code })));
+      }
+      if (s.qr) $('lang-qr').src = s.qr;
+      $('lang-url').textContent = s.joinUrl ?? '';
+      return show('language');
+    }
+    if (s.lang !== i18n.lang) {
+      await i18n.setLang(s.lang);
+    }
     if (s.mode === 'setup') {
       $('problems').replaceChildren(...s.problems.map(p => Object.assign(document.createElement('li'), { textContent: p })));
       return show('setup');
     }
+    if (s.mode === 'launching' && lastMode !== 'launching') window.sfx?.select();
+    lastMode = s.mode;
     if (s.mode === 'launching') {
-      $('launch-title').textContent = s.gameTitle ?? '';
+      $('launching-text').textContent = i18n.t('launching', { title: s.gameTitle ?? '' });
       return show('launching');
     }
     if (s.mode === 'game') return show('game');
 
     const n = s.games.length;
     const sel = Math.min(s.selected, n - 1);
-    $('home-hint').innerHTML = n > 1
-      ? '◀ <b class="c-blue">BLUE</b> · <b class="c-orange">ORANGE</b> ▶ · <b class="c-red">RED</b> to play'
-      : 'Grab your phones, then press <b class="c-red">RED</b> to start';
+    $('home-hint').innerHTML = i18n.t(n > 1 ? 'home.hintMany' : 'home.hintOne');
 
     // Rebuild the carousel only when something visible changed.
     const key = JSON.stringify([sel, s.games.map(g => [g.id, g.cover])]);
@@ -56,6 +78,7 @@
         c.classList.remove('slide-next', 'slide-prev');
         void c.offsetWidth;
         c.classList.add(forward ? 'slide-next' : 'slide-prev');
+        window.sfx?.move(forward);
       }
       lastSelected = sel;
     }
@@ -70,7 +93,7 @@
     $('players').replaceChildren(...s.slots.map(p => {
       const el = document.createElement('div');
       el.className = `player p${p.slot}` + (p.taken ? ' joined' : '') + (p.taken && !p.connected ? ' away' : '');
-      el.textContent = p.taken ? `Player ${p.slot}` : `${p.slot} – free`;
+      el.textContent = p.taken ? i18n.t('player', { n: p.slot }) : i18n.t('player.free', { n: p.slot });
       return el;
     }));
     show('home');

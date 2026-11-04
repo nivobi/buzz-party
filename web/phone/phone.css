@@ -1,5 +1,6 @@
 :root {
   --bg: #14121f;
+  --panel: #221f36;
   --fg: #fff;
   --muted: #8b87a3;
   --red: #e3262b;
@@ -63,3 +64,9 @@ h1 { text-align: center; font-size: 28px; margin: 12px 0; }
 .sheet-body button { background: #3a3658; border-radius: 12px; padding: 16px; font-size: 20px; }
 .sheet-body button.quiet { background: transparent; color: var(--muted); }
 #invite-qr { width: 70vw; max-width: 320px; align-self: center; background: #fff; border-radius: 12px; padding: 8px; image-rendering: pixelated; }
+
+.langs { display: flex; flex-direction: column; gap: 14px; }
+.lang { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 18px; border: 0;
+  background: var(--panel); color: var(--fg); font: inherit; font-size: 22px; font-weight: 700; }
+.lang img { width: 60px; height: 40px; border-radius: 4px; }
+#language { display: flex; flex-direction: column; justify-content: center; }

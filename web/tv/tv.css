@@ -69,3 +69,14 @@ h1 { font-size: 2.4rem; margin: 0 0 3vh; }
 .url { color: var(--muted); font-size: .6rem; margin: 0; word-break: break-all; text-align: center; }
 
 #game { background: #000; }
+
+#intro { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 9999; background: #000; pointer-events: none; }
+
+.chooser { flex-direction: column; gap: 4vh; text-align: center; }
+.chooser h1 { margin: 0; }
+.langs { display: flex; gap: 4vw; justify-content: center; }
+.lang { display: flex; flex-direction: column; align-items: center; gap: 1.5vh; background: var(--panel); color: var(--fg);
+  border: 0; border-radius: 1.2rem; padding: 2.5vh 3vw; font: inherit; font-size: 1.6rem; cursor: pointer; }
+.lang img { width: 12vw; height: 8vw; max-width: 240px; max-height: 160px; border-radius: .4rem; box-shadow: 0 .3rem 1rem #0008; }
+.chooser-qr img { width: 22vh; background: #fff; padding: .5rem; border-radius: .6rem; }
+.chooser-qr .url { margin: 1vh 0 0; }

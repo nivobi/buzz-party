@@ -5,7 +5,8 @@ export type PhoneMsg =
   | { t: 'hello'; token: string }
   | { t: 'claim'; slot: Slot }
   | { t: 'btn'; b: Button; down: boolean }
-  | { t: 'menu'; action: 'back' | 'off' | 'leave' };
+  | { t: 'menu'; action: 'back' | 'off' | 'leave' }
+  | { t: 'lang'; lang: string };
 
 export type Mode = 'setup' | 'picker' | 'waiting' | 'launching' | 'game';
 
@@ -20,6 +21,8 @@ export type PhoneState = {
   qr: string;
   /** The game the picker points at, so phones can show it. */
   selectedTitle: string | null;
+  /** UI language; null until someone has picked one. */
+  lang: string | null;
 };
 
 export type TvState = {
@@ -31,4 +34,6 @@ export type TvState = {
   qr: string | null;
   problems: string[];
   gameTitle: string | null;
+  /** UI language; null until someone has picked one. */
+  lang: string | null;
 };

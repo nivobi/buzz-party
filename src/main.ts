@@ -13,8 +13,10 @@ import type { KeyBridge } from './bridge/types.js';
 import { CoverFetcher, findCover } from './core/covers.js';
 import { scanGames, type Game } from './core/games.js';
 import { defaultRouteInterface, pickLanIp } from './core/lan-ip.js';
+import { isLang, loadDictionaries, translator, type Lang } from './core/i18n.js';
 import { ensureFolders, paths, pickBios } from './core/paths.js';
 import { findPcsx2, Pcsx2Manager } from './core/pcsx2-manager.js';
+import { readSettings, writeSettings } from './core/settings.js';
 import { SlotManager } from './core/slots.js';
 import { startServer } from './server/server.js';
 
@@ -29,6 +31,11 @@ const webDir = join(app.getAppPath(), 'web');
 app.whenReady().then(async () => {
   const p = paths();
   await ensureFolders(p);
+
+  // UI language: chosen on first run (flags on the TV and phones), then remembered.
+  const settingsFile = join(p.root, 'settings.json');
+  let lang: Lang | null = (await readSettings(settingsFile)).language ?? null;
+  const t = translator(loadDictionaries(webDir), () => lang);
 
   const bridge: KeyBridge = process.platform === 'darwin' ? new MacBridge(helperPath) : new FakeBridge();
   const presser = new Presser(bridge, { minHoldMs: 50 });
@@ -55,9 +62,9 @@ app.whenReady().then(async () => {
   let port = PORT;
   async function check(promptTrust: boolean): Promise<{ games: Game[]; problems: string[]; join: Join | null }> {
     const problems: string[] = [];
-    if (!pcsx2Path) problems.push('PCSX2 isn’t installed. Install it from pcsx2.net (or `brew install --cask pcsx2`).');
+    if (!pcsx2Path) problems.push(t('problem.pcsx2'));
     biosFile = pickBios(await readdir(p.bios).catch(() => []));
-    if (!biosFile) problems.push(`Put your PS2 BIOS file in ${p.bios}`);
+    if (!biosFile) problems.push(t('problem.bios', { path: p.bios }));
     const games = await scanGames(p.games);
     for (const g of games) {
       const file = g.serial ? await findCover(g.serial, p.covers) : null;
@@ -68,9 +75,9 @@ app.whenReady().then(async () => {
       .then(async got => {
         if (got.some(Boolean) && shouldRecheck(controller.tvState().mode)) controller.update(await check(false));
       });
-    if (games.length === 0) problems.push(`Put your games in ${p.games}`);
+    if (games.length === 0) problems.push(t('problem.games', { path: p.games }));
     if (!(await bridge.isTrusted(promptTrust))) {
-      problems.push('Allow Buzz Party in System Settings → Privacy & Security → Accessibility');
+      problems.push(t('problem.accessibility'));
     }
     const ip = pickLanIp(networkInterfaces(), await defaultRouteInterface());
     let join: Join | null = null;
@@ -78,12 +85,20 @@ app.whenReady().then(async () => {
       const url = `http://${ip}:${port}/`;
       join = { url, qr: await QRCode.toDataURL(url, { margin: 1, width: 512 }) };
     } else {
-      problems.push('Not connected to Wi-Fi. Connect this computer to the same Wi-Fi as the phones.');
+      problems.push(t('problem.wifi'));
     }
     return { games, problems, join };
   }
 
-  const controller = new Controller({ slots, presser, runner, games: [], problems: ['Starting…'], join: null, quit: () => app.quit() });
+  const controller = new Controller({ slots, presser, runner, games: [], problems: ['Starting…'], join: null, quit: () => app.quit(),
+    lang, t,
+    setLang: async next => {
+      if (!isLang(next) || next === lang) return;
+      lang = next;
+      await writeSettings(settingsFile, { language: lang }).catch(() => {});
+      controller.update({ ...(await check(false)), lang });
+    },
+  });
   const server = await startServer(controller, { webDir, port: PORT, maxPort: MAX_PORT, coversDir: p.covers });
   port = server.port;
   controller.update(await check(true));

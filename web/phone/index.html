@@ -10,11 +10,16 @@
 </head>
 <body>
   <main id="connecting" class="screen center">
-    <p class="big">Connecting…</p>
+    <p class="big" data-i18n="phone.connecting">Connecting…</p>
+  </main>
+
+  <main id="language" class="screen" hidden>
+    <h1>Choose language · Vælg sprog</h1>
+    <div id="phone-langs" class="langs"></div>
   </main>
 
   <main id="pick" class="screen" hidden>
-    <h1>Who are you?</h1>
+    <h1 data-i18n="phone.who">Who are you?</h1>
     <div id="slots" class="slots"></div>
   </main>
 
@@ -22,42 +27,51 @@
     <header class="strip">
       <span id="player">PLAYER 1</span>
       <span id="status"></span>
-      <button id="menu-btn" class="menu-btn" aria-label="Menu">⋯</button>
+      <button id="menu-btn" class="menu-btn" data-i18n-aria="phone.menu" aria-label="Menu">⋯</button>
     </header>
-    <button class="btn red" data-b="red" aria-label="Red buzzer"></button>
-    <button class="btn bar blue" data-b="blue">BLUE</button>
-    <button class="btn bar orange" data-b="orange">ORANGE</button>
-    <button class="btn bar green" data-b="green">GREEN</button>
-    <button class="btn bar yellow" data-b="yellow">YELLOW</button>
+    <button class="btn red" data-b="red" data-i18n-aria="phone.red" aria-label="Red buzzer"></button>
+    <button class="btn bar blue" data-b="blue" data-i18n="phone.blue">BLUE</button>
+    <button class="btn bar orange" data-b="orange" data-i18n="phone.orange">ORANGE</button>
+    <button class="btn bar green" data-b="green" data-i18n="phone.green">GREEN</button>
+    <button class="btn bar yellow" data-b="yellow" data-i18n="phone.yellow">YELLOW</button>
   </main>
 
   <div id="menu" class="sheet" hidden>
     <div class="sheet-body">
-      <button data-act="back">Back to games</button>
-      <button data-act="invite">Invite a player</button>
-      <button data-act="leave">Change player</button>
-      <button data-act="off">Turn off Buzz Party</button>
-      <button data-act="close" class="quiet">Close</button>
+      <button data-act="back" data-i18n="phone.back">Back to games</button>
+      <button data-act="invite" data-i18n="phone.invite">Invite a player</button>
+      <button data-act="leave" data-i18n="phone.leave">Change player</button>
+      <button data-act="language" data-i18n="phone.language">Language</button>
+      <button data-act="off" data-i18n="phone.off">Turn off Buzz Party</button>
+      <button data-act="close" class="quiet" data-i18n="phone.close">Close</button>
     </div>
   </div>
 
   <div id="confirm" class="sheet" hidden>
     <div class="sheet-body">
       <p id="confirm-text"></p>
-      <button id="confirm-yes">Yes</button>
-      <button id="confirm-no" class="quiet">No</button>
+      <button id="confirm-yes" data-i18n="phone.yes">Yes</button>
+      <button id="confirm-no" class="quiet" data-i18n="phone.no">No</button>
+    </div>
+  </div>
+
+  <div id="lang-sheet" class="sheet" hidden>
+    <div class="sheet-body">
+      <div id="sheet-langs" class="langs"></div>
+      <button data-act="close" class="quiet" data-i18n="phone.close">Close</button>
     </div>
   </div>
 
   <div id="invite" class="sheet" hidden>
     <div class="sheet-body">
-      <p>Scan with your phone camera</p>
+      <p data-i18n="phone.scanCamera">Scan with your phone camera</p>
       <img id="invite-qr" alt="Join QR code">
       <p id="invite-url" class="small"></p>
-      <button data-act="close" class="quiet">Close</button>
+      <button data-act="close" class="quiet" data-i18n="phone.close">Close</button>
     </div>
   </div>
 
+  <script src="/i18n.js"></script>
   <script src="phone.js"></script>
 </body>
 </html>

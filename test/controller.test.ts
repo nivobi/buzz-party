@@ -223,3 +223,45 @@ test('phones see the name of the selected game', () => {
   const none = setup([], ['no games']);
   expect(none.c.phoneState('x').selectedTitle).toBeNull();
 });
+
+describe('language', () => {
+  const make = (lang: string | null | undefined) => {
+    const setLang = vi.fn();
+    const t = (key: string, p?: Record<string, string | number>) => `t:${key}:${p?.message ?? ''}`;
+    const runner = new FakeRunner();
+    const c = new Controller({
+      slots: new SlotManager({ now: () => 0, releaseAfterMs: 90_000 }),
+      presser: new Presser(new FakeBridge(), { minHoldMs: 0 }),
+      runner, games: [game('A'), game('B')], problems: [], join: null, quit: vi.fn(), lang, setLang, t,
+    });
+    return { c, setLang, runner };
+  };
+
+  test('reports the language to the TV and phones; undefined counts as English', () => {
+    expect(make('da').c.tvState().lang).toBe('da');
+    expect(make(null).c.tvState().lang).toBeNull();
+    expect(make(undefined).c.phoneState('x').lang).toBe('en');
+  });
+
+  test('a phone choosing a language is passed to the owner of the setting', () => {
+    const { c, setLang } = make(null);
+    c.phone('p', { t: 'hello', token: 'p' });
+    c.phone('p', { t: 'lang', lang: 'da' });
+    expect(setLang).toHaveBeenCalledWith('da');
+  });
+
+  test('update() can set the language', () => {
+    const { c } = make(null);
+    c.update({ lang: 'da' });
+    expect(c.tvState().lang).toBe('da');
+  });
+
+  test('launch errors use the translator', async () => {
+    const { c, runner } = make('da');
+    runner.fail = true;
+    c.phone('p', { t: 'hello', token: 'p' });
+    c.phone('p', { t: 'claim', slot: 1 });
+    c.phone('p', { t: 'btn', b: 'red', down: true });
+    await vi.waitFor(() => expect(c.tvState().problems).toContain('t:error.launch:PCSX2 did not start'));
+  });
+});

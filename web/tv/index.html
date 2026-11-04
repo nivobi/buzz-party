@@ -6,10 +6,20 @@
   <link rel="stylesheet" href="tv.css">
 </head>
 <body>
+  <main id="language" class="screen center chooser" hidden>
+    <h1>Choose language · Vælg sprog</h1>
+    <div id="tv-langs" class="langs"></div>
+    <aside class="chooser-qr">
+      <img id="lang-qr" alt="QR">
+      <p class="url" id="lang-url"></p>
+      <p class="hint">Scan with your phone · Scan med din telefon</p>
+    </aside>
+  </main>
+
   <main id="setup" class="screen" hidden>
-    <h1>Almost ready</h1>
+    <h1 data-i18n="setup.title">Almost ready</h1>
     <ul id="problems"></ul>
-    <p class="hint">The first time, macOS may ask to allow incoming network connections. Click <b>Allow</b> so phones can join.</p>
+    <p class="hint" data-i18n-html="setup.hint">The first time, macOS may ask to allow incoming network connections. Click <b>Allow</b> so phones can join.</p>
   </main>
 
   <main id="home" class="screen" hidden>
@@ -21,17 +31,20 @@
     <div id="players" class="players"></div>
     <aside class="join-box">
       <img id="qr" alt="Join QR code">
-      <p class="join">Scan to join</p>
+      <p class="join" data-i18n="join.scan">Scan to join</p>
       <p id="url" class="url"></p>
     </aside>
   </main>
 
   <main id="launching" class="screen center" hidden>
-    <p class="big">Starting <span id="launch-title"></span>…</p>
+    <p class="big" id="launching-text"></p>
   </main>
 
   <main id="game" class="screen" hidden></main>
 
+  <script src="/i18n.js"></script>
+  <script src="sfx.js"></script>
+  <script src="intro.js"></script>
   <script src="tv.js"></script>
 </body>
 </html>

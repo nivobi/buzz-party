@@ -24,6 +24,12 @@ export interface ControllerDeps {
   problems: string[];
   join: Join | null;
   quit: () => void;
+  /** Current UI language; null until chosen (undefined counts as English). */
+  lang?: string | null;
+  /** Called when a phone or the TV picks a language. */
+  setLang?: (lang: string) => void;
+  /** Translates a message key into the current language. */
+  t?: (key: string, params?: Record<string, string | number>) => string;
 }
 
 /** The whole evening as a state machine: setup → picker/waiting → game → back. */
@@ -43,7 +49,7 @@ export class Controller {
     this.listeners.push(cb);
   }
 
-  update(u: Partial<Pick<ControllerDeps, 'games' | 'problems' | 'join'>>): void {
+  update(u: Partial<Pick<ControllerDeps, 'games' | 'problems' | 'join' | 'lang'>>): void {
     Object.assign(this.d, u);
     this.selected = Math.min(this.selected, Math.max(0, this.d.games.length - 1));
     if (this.mode !== 'game' && this.mode !== 'launching') this.mode = this.homeMode();
@@ -65,6 +71,8 @@ export class Controller {
         return this.button(token, msg.b, msg.down);
       case 'menu':
         return this.menu(token, msg.action);
+      case 'lang':
+        return this.setLang(msg.lang);
     }
   }
 
@@ -91,6 +99,7 @@ export class Controller {
       qr: this.d.join?.qr ?? null,
       problems,
       gameTitle: this.current?.title ?? null,
+      lang: this.lang(),
     };
   }
 
@@ -103,7 +112,17 @@ export class Controller {
       joinUrl: this.d.join?.url ?? '',
       qr: this.d.join?.qr ?? '',
       selectedTitle: this.mode === 'setup' ? null : (this.current ?? this.d.games[this.selected])?.title ?? null,
+      lang: this.lang(),
     };
+  }
+
+  private lang(): string | null {
+    return this.d.lang === undefined ? 'en' : this.d.lang;
+  }
+
+  /** A phone or the TV asked for a language; the owner of the setting decides. */
+  setLang(lang: string): void {
+    this.d.setLang?.(lang);
   }
 
   private homeMode(): Mode {
@@ -162,7 +181,8 @@ export class Controller {
     } catch (e) {
       // A launch cancelled by "Back to games" is not an error worth showing.
       if (!(e instanceof Error && e.name === 'LaunchCancelled')) {
-        this.launchError = `Couldn’t start the game: ${e instanceof Error ? e.message : String(e)}`;
+        const message = e instanceof Error ? e.message : String(e);
+        this.launchError = this.d.t?.('error.launch', { message }) ?? `Couldn’t start the game: ${message}`;
       }
       this.gameEnded();
     }

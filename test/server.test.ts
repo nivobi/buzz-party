@@ -172,3 +172,27 @@ test('a second hello with a different token on one socket is ignored', async () 
     ['phone', 'one', { t: 'claim', slot: 1 }],
   ]);
 });
+
+test('language messages: only known languages pass, and the TV can pick one too', async () => {
+  const hub = Object.assign(new FakeHub(), { setLang: vi.fn(), tvState: () => ({ mode: 'picker' }) as any });
+  const { s } = await start(hub);
+
+  const phone = connect(s.port);
+  await phone.open;
+  phone.ws.send(JSON.stringify({ t: 'hello', token: 'tok' }));
+  phone.ws.send(JSON.stringify({ t: 'lang', lang: 'klingon' }));
+  phone.ws.send(JSON.stringify({ t: 'lang', lang: 'da' }));
+  await until(() => hub.calls.length >= 2);
+  expect(hub.calls).toEqual([
+    ['phone', 'tok', { t: 'hello', token: 'tok' }],
+    ['phone', 'tok', { t: 'lang', lang: 'da' }],
+  ]);
+
+  const tv = connect(s.port);
+  await tv.open;
+  tv.ws.send('{"t":"tv"}');
+  await tv.next(1);
+  tv.ws.send(JSON.stringify({ t: 'lang', lang: 'en' }));
+  await until(() => hub.setLang.mock.calls.length >= 1);
+  expect(hub.setLang).toHaveBeenCalledWith('en');
+});

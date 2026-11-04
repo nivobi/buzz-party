@@ -2,13 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   const SLOT_COLORS = { 1: 'var(--blue)', 2: 'var(--orange)', 3: 'var(--green)', 4: '#c9a800' };
-  const STATUS = {
-    setup: 'Getting ready – look at the TV',
-    picker: 'Pick a game',
-    waiting: 'Press RED to start',
-    launching: 'Starting…',
-    game: '',
-  };
+  const STATUS_KEYS = { setup: 'phone.status.setup', picker: 'phone.status.picker', waiting: 'phone.status.waiting', launching: 'phone.status.launching' };
 
   // A token survives reloads so the phone gets its player back.
   let token;
@@ -24,6 +18,8 @@
 
   let ws = null;
   let state = null;
+  let queue = Promise.resolve(); // renders one at a time so a language loads before it is used
+  let chooserDrawn = false;
   let retry = 0;
   const held = new Set();
 
@@ -41,7 +37,7 @@
       const msg = JSON.parse(e.data);
       if (msg.t === 'state') {
         state = msg;
-        render();
+        queue = queue.then(render).catch(() => {});
       }
     };
     ws.onclose = () => {
@@ -52,22 +48,31 @@
   }
 
   function show(id) {
-    for (const s of ['connecting', 'pick', 'buzzer']) $(s).hidden = s !== id;
+    for (const s of ['connecting', 'language', 'pick', 'buzzer']) $(s).hidden = s !== id;
   }
 
-  function render() {
+  const pickLang = code => send({ t: 'lang', lang: code });
+
+  async function render() {
+    if (!chooserDrawn) {
+      chooserDrawn = true;
+      await i18n.renderChooser($('phone-langs'), pickLang);
+      await i18n.renderChooser($('sheet-langs'), code => { sheet(null); pickLang(code); });
+    }
+    if (state.lang === null) return show('language');
+    if (state.lang !== i18n.lang) await i18n.setLang(state.lang);
     if (!state.you) {
       renderSlots();
       show('pick');
       return;
     }
-    $('player').textContent = `PLAYER ${state.you}`;
+    $('player').textContent = i18n.t('phone.player', { n: state.you });
     const game = state.selectedTitle ? state.selectedTitle.replace(/^Buzz! Junior: /, '') : '';
     $('status').textContent =
       state.mode === 'picker' && game ? `◀ ${game} ▶` :
-      state.mode === 'waiting' && game ? `${game} – press RED` :
+      state.mode === 'waiting' && game ? i18n.t('phone.status.waitingGame', { game }) :
       (state.mode === 'game' || state.mode === 'launching') && game ? game :
-      STATUS[state.mode] ?? '';
+      (STATUS_KEYS[state.mode] ? i18n.t(STATUS_KEYS[state.mode]) : '');
     document.querySelector('.strip').style.setProperty('--c', SLOT_COLORS[state.you]);
     show('buzzer');
     $('invite-qr').src = state.qr;
@@ -84,7 +89,7 @@
         const b = document.createElement('button');
         b.className = 'slot';
         b.dataset.slot = s.slot;
-        b.textContent = `PLAYER ${s.slot}`;
+        b.textContent = i18n.t('phone.player', { n: s.slot });
         b.disabled = s.taken;
         b.addEventListener('click', () => send({ t: 'claim', slot: s.slot }));
         return b;
@@ -125,7 +130,7 @@
 
   // Menu.
   const sheet = id => {
-    for (const s of ['menu', 'confirm', 'invite']) $(s).hidden = s !== id;
+    for (const s of ['menu', 'confirm', 'lang-sheet', 'invite']) $(s).hidden = s !== id;
   };
   let onYes = null;
   function confirmThen(text, fn) {
@@ -144,12 +149,13 @@
       const act = el.dataset.act;
       if (act === 'close') sheet(null);
       else if (act === 'invite') sheet('invite');
+      else if (act === 'language') sheet('lang-sheet');
       else if (act === 'leave') {
         sheet(null);
         releaseAll();
         send({ t: 'menu', action: 'leave' });
-      } else if (act === 'back') confirmThen('Stop this game and go back to the games?', () => send({ t: 'menu', action: 'back' }));
-      else if (act === 'off') confirmThen('Turn off Buzz Party for everyone?', () => send({ t: 'menu', action: 'off' }));
+      } else if (act === 'back') confirmThen(i18n.t('phone.confirmBack'), () => send({ t: 'menu', action: 'back' }));
+      else if (act === 'off') confirmThen(i18n.t('phone.confirmOff'), () => send({ t: 'menu', action: 'off' }));
     });
   }
 

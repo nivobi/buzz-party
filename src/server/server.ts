@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { BUTTONS, SLOTS } from '../shared/keymap.js';
+import { isLang } from '../core/i18n.js';
 import type { PhoneMsg, PhoneState, TvState } from '../shared/protocol.js';
 
 /** The part of the Controller the server talks to. */
@@ -13,6 +14,8 @@ export interface PhoneHub {
   onChange(cb: () => void): void;
   /** Present when a TV page may subscribe (the real Controller). */
   tvState?(): TvState;
+  /** The TV page (mouse or remote) picked a language. */
+  setLang?(lang: string): void;
 }
 
 const TYPES: Record<string, string> = {
@@ -47,6 +50,8 @@ function parseMsg(raw: string): PhoneMsg | null {
       return BUTTONS.includes(m.b) && typeof m.down === 'boolean' ? { t: 'btn', b: m.b, down: m.down } : null;
     case 'menu':
       return ['back', 'off', 'leave'].includes(m.action) ? { t: 'menu', action: m.action } : null;
+    case 'lang':
+      return isLang(m.lang) ? { t: 'lang', lang: m.lang } : null;
     default:
       return null;
   }
@@ -123,6 +128,7 @@ export async function startServer(
       }
       const msg = parseMsg(String(data));
       if (!msg) return;
+      if (msg.t === 'lang' && tvs.has(ws)) return hub.setLang?.(msg.lang);
       let token = sockets.get(ws);
       if (msg.t === 'hello') {
         if (token && token !== msg.token) return;
