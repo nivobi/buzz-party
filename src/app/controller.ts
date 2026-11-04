@@ -28,6 +28,10 @@ export interface ControllerDeps {
   lang?: string | null;
   /** Called when a phone or the TV picks a language. */
   setLang?: (lang: string) => void;
+  /** UI sounds on or off (undefined counts as on). */
+  sound?: boolean;
+  /** Called when a phone switches the sounds on or off. */
+  setSound?: (on: boolean) => void;
   /** process.platform; defaults to the real one. */
   platform?: string;
   /** Translates a message key into the current language. */
@@ -51,7 +55,7 @@ export class Controller {
     this.listeners.push(cb);
   }
 
-  update(u: Partial<Pick<ControllerDeps, 'games' | 'problems' | 'join' | 'lang'>>): void {
+  update(u: Partial<Pick<ControllerDeps, 'games' | 'problems' | 'join' | 'lang' | 'sound'>>): void {
     Object.assign(this.d, u);
     this.selected = Math.min(this.selected, Math.max(0, this.d.games.length - 1));
     if (this.mode !== 'game' && this.mode !== 'launching') this.mode = this.homeMode();
@@ -75,6 +79,8 @@ export class Controller {
         return this.menu(token, msg.action);
       case 'lang':
         return this.setLang(msg.lang);
+      case 'sound':
+        return this.d.setSound?.(msg.on);
     }
   }
 
@@ -103,6 +109,7 @@ export class Controller {
       gameTitle: this.current?.title ?? null,
       platform: this.d.platform ?? process.platform,
       lang: this.lang(),
+      sound: this.d.sound ?? true,
     };
   }
 
@@ -116,6 +123,7 @@ export class Controller {
       qr: this.d.join?.qr ?? '',
       selectedTitle: this.mode === 'setup' ? null : (this.current ?? this.d.games[this.selected])?.title ?? null,
       lang: this.lang(),
+      sound: this.d.sound ?? true,
     };
   }
 

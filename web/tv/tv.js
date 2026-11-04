@@ -35,11 +35,13 @@
       if (!chooserDrawn) {
         chooserDrawn = true;
         await i18n.renderChooser($('tv-langs'), code => ws?.send(JSON.stringify({ t: 'lang', lang: code })));
+        $('tv-langs').querySelector('.lang')?.focus();
       }
       if (s.qr) $('lang-qr').src = s.qr;
       $('lang-url').textContent = s.joinUrl ?? '';
       return show('language');
     }
+    if (window.sfx) window.sfx.enabled = s.sound !== false;
     if (s.lang !== i18n.lang) {
       await i18n.setLang(s.lang);
     }
@@ -122,6 +124,18 @@
     }
     return el;
   }
+
+  // Keyboard on the language chooser: left/right move between flags, Enter picks.
+  document.addEventListener('keydown', e => {
+    if ($('language').hidden) return;
+    const flags = [...$('tv-langs').querySelectorAll('.lang')];
+    if (!flags.length) return;
+    const i = Math.max(0, flags.indexOf(document.activeElement));
+    if (e.key === 'ArrowRight') flags[(i + 1) % flags.length].focus();
+    else if (e.key === 'ArrowLeft') flags[(i - 1 + flags.length) % flags.length].focus();
+    else return;
+    e.preventDefault();
+  });
 
   connect();
 })();

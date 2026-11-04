@@ -31,6 +31,8 @@
   "phone.invite": "Invite a player",
   "phone.leave": "Change player",
   "phone.language": "Language",
+  "phone.soundOn": "Sound: on",
+  "phone.soundOff": "Sound: off",
   "phone.off": "Turn off Buzz Party",
   "phone.close": "Close",
   "phone.yes": "Yes",

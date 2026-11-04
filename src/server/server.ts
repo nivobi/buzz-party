@@ -52,6 +52,8 @@ function parseMsg(raw: string): PhoneMsg | null {
       return ['back', 'off', 'leave'].includes(m.action) ? { t: 'menu', action: m.action } : null;
     case 'lang':
       return isLang(m.lang) ? { t: 'lang', lang: m.lang } : null;
+    case 'sound':
+      return typeof m.on === 'boolean' ? { t: 'sound', on: m.on } : null;
     default:
       return null;
   }

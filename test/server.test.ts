@@ -196,3 +196,17 @@ test('language messages: only known languages pass, and the TV can pick one too'
   await until(() => hub.setLang.mock.calls.length >= 1);
   expect(hub.setLang).toHaveBeenCalledWith('en');
 });
+
+test('sound messages need a real boolean', async () => {
+  const { hub, s } = await start();
+  const c = connect(s.port);
+  await c.open;
+  c.ws.send(JSON.stringify({ t: 'hello', token: 'tok' }));
+  c.ws.send(JSON.stringify({ t: 'sound', on: 'yes' }));
+  c.ws.send(JSON.stringify({ t: 'sound', on: false }));
+  await until(() => hub.calls.length >= 2);
+  expect(hub.calls).toEqual([
+    ['phone', 'tok', { t: 'hello', token: 'tok' }],
+    ['phone', 'tok', { t: 'sound', on: false }],
+  ]);
+});

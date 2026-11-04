@@ -6,7 +6,8 @@ export type PhoneMsg =
   | { t: 'claim'; slot: Slot }
   | { t: 'btn'; b: Button; down: boolean }
   | { t: 'menu'; action: 'back' | 'off' | 'leave' }
-  | { t: 'lang'; lang: string };
+  | { t: 'lang'; lang: string }
+  | { t: 'sound'; on: boolean };
 
 export type Mode = 'setup' | 'picker' | 'waiting' | 'launching' | 'game';
 
@@ -23,6 +24,8 @@ export type PhoneState = {
   selectedTitle: string | null;
   /** UI language; null until someone has picked one. */
   lang: string | null;
+  /** UI sounds on or off. */
+  sound: boolean;
 };
 
 export type TvState = {
@@ -37,5 +40,6 @@ export type TvState = {
   /** The OS the app runs on (process.platform), so the TV can hide hints that only apply to macOS. */
   platform: string;
   /** UI language; null until someone has picked one. */
-  lang: string | null;
+  lang: string | null;  /** UI sounds on or off. */
+  sound: boolean;
 };

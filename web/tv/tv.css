@@ -62,10 +62,10 @@ h1 { font-size: 2.4rem; margin: 0 0 3vh; }
 .player.joined.p4 { background: var(--yellow); }
 .player.away { opacity: .5; }
 
-.join-box { position: absolute; right: 3vw; bottom: 3vh; width: 9.5rem; background: var(--panel); border-radius: 1rem;
+.join-box { position: absolute; right: 3vw; bottom: 3vh; width: 12rem; background: var(--panel); border-radius: 1rem;
   padding: 1rem; display: flex; flex-direction: column; align-items: center; }
 #qr { width: 100%; background: #fff; border-radius: .6rem; padding: .4rem; image-rendering: pixelated; }
-.join { font-size: 1rem; margin: 1vh 0 .2vh; }
+.join { font-size: .95rem; margin: 1vh 0 .2vh; text-align: center; }
 .url { color: var(--muted); font-size: .6rem; margin: 0; word-break: break-all; text-align: center; }
 
 #game { background: #000; }
@@ -80,3 +80,4 @@ h1 { font-size: 2.4rem; margin: 0 0 3vh; }
 .lang img { width: 12vw; height: 8vw; max-width: 240px; max-height: 160px; border-radius: .4rem; box-shadow: 0 .3rem 1rem #0008; }
 .chooser-qr img { width: 22vh; background: #fff; padding: .5rem; border-radius: .6rem; }
 .chooser-qr .url { margin: 1vh 0 0; }
+.lang:focus-visible { outline: .25rem solid var(--yellow); outline-offset: .25rem; }

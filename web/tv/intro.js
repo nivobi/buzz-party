@@ -1,6 +1,6 @@
 // Startup intro: glowing towers rising out of the dark, a soft chime, then the
 // title. Plays once when the TV page loads and then removes itself.
-// Add ?nointro to the URL to skip it.
+// Add ?nointro to the URL to skip it, or ?mute to play it without sound.
 (() => {
   if (/[?&]nointro\b/.test(location.search)) return;
 
@@ -114,7 +114,7 @@
       bell(1318.5, TITLE_AT + 0.3, 0.1);       // E6
     } catch { /* silent intro is fine */ }
   }
-  startAudio();
+  if (!/[?&]mute\b/.test(location.search)) startAudio();
 
   function drawBackground(t, fade) {
     const g = ctx.createLinearGradient(0, 0, 0, H);

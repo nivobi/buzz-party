@@ -1,7 +1,7 @@
 import { app, BrowserWindow, screen } from 'electron';
 import { readFileSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
-import { networkInterfaces } from 'node:os';
+import { networkInterfaces, uptime } from 'node:os';
 import { join } from 'node:path';
 import QRCode from 'qrcode';
 import { Controller, type GameRunner, type Join } from './app/controller.js';
@@ -17,7 +17,7 @@ import { defaultRouteInterface, pickLanIp } from './core/lan-ip.js';
 import { isLang, loadDictionaries, translator, type Lang } from './core/i18n.js';
 import { ensureFolders, paths, pickBios } from './core/paths.js';
 import { findPcsx2, Pcsx2Manager } from './core/pcsx2-manager.js';
-import { readSettings, writeSettings } from './core/settings.js';
+import { readSettings, shouldPlayIntro, updateSettings } from './core/settings.js';
 import { SlotManager } from './core/slots.js';
 import { startServer } from './server/server.js';
 
@@ -40,7 +40,9 @@ app.whenReady().then(async () => {
 
   // UI language: chosen on first run (flags on the TV and phones), then remembered.
   const settingsFile = join(p.root, 'settings.json');
-  let lang: Lang | null = (await readSettings(settingsFile)).language ?? null;
+  const settings = await readSettings(settingsFile);
+  let lang: Lang | null = settings.language ?? null;
+  let sound = settings.sound ?? true;
   const t = translator(loadDictionaries(webDir), () => lang);
 
   const bridge: KeyBridge =
@@ -100,12 +102,18 @@ app.whenReady().then(async () => {
   }
 
   const controller = new Controller({ slots, presser, runner, games: [], problems: ['Starting…'], join: null, quit: () => app.quit(),
-    lang, t, platform: process.platform,
+    lang, sound, t, platform: process.platform,
     setLang: async next => {
       if (!isLang(next) || next === lang) return;
       lang = next;
-      await writeSettings(settingsFile, { language: lang }).catch(() => {});
+      await updateSettings(settingsFile, { language: lang });
       controller.update({ ...(await check(false)), lang });
+    },
+    setSound: async on => {
+      if (on === sound) return;
+      sound = on;
+      await updateSettings(settingsFile, { sound });
+      controller.update({ sound });
     },
   });
   const server = await startServer(controller, { webDir, port: PORT, maxPort: MAX_PORT, coversDir: p.covers });
@@ -137,7 +145,10 @@ app.whenReady().then(async () => {
     webPreferences: { contextIsolation: true, sandbox: true },
   });
   win.setBounds(display.bounds);
-  win.loadURL(`http://127.0.0.1:${port}/tv/`);
+  // The intro is skipped (or muted) through the page's URL, since it starts
+  // before the page has heard anything from the server.
+  const query = [shouldPlayIntro(settings.intro, uptime()) ? '' : 'nointro', sound ? '' : 'mute'].filter(Boolean).join('&');
+  win.loadURL(`http://127.0.0.1:${port}/tv/${query ? `?${query}` : ''}`);
 
   let lastMode = controller.tvState().mode;
   controller.onChange(async () => {

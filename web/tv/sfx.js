@@ -14,6 +14,7 @@
 
   // One short note: sine (plus a quiet octave for sparkle) with a fast attack and decay.
   function note(freq, start, len, peak, type = 'sine') {
+    if (!window.sfx.enabled) return;
     const a = audio();
     if (!a) return;
     const t0 = a.currentTime + start;
@@ -32,6 +33,8 @@
   }
 
   window.sfx = {
+    // Switched off from the phone menu; the TV page sets this from the server state.
+    enabled: true,
     // Browsing the carousel: a soft tick, a little higher going forward, lower going back.
     move(forward) {
       note(forward ? 1046.5 : 784, 0, 0.09, 0.12);

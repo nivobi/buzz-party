@@ -75,7 +75,9 @@
       (STATUS_KEYS[state.mode] ? i18n.t(STATUS_KEYS[state.mode]) : '');
     document.querySelector('.strip').style.setProperty('--c', SLOT_COLORS[state.you]);
     show('buzzer');
-    $('invite-qr').src = state.qr;
+    $('sound-btn').textContent = i18n.t(state.sound === false ? 'phone.soundOff' : 'phone.soundOn');
+    $('invite-qr').hidden = !state.qr;
+    if (state.qr) $('invite-qr').src = state.qr;
     $('invite-url').textContent = state.joinUrl;
     const inGame = state.mode === 'game' || state.mode === 'launching';
     document.querySelector('[data-act="back"]').hidden = !inGame;
@@ -97,13 +99,19 @@
     );
   }
 
-  // Buttons: register on finger down, release on up/cancel/leave.
+  // Buttons: register on finger down, release on up/cancel/leave. With two
+  // fingers on one button, it stays pressed until the last one lifts.
+  const fingers = new Map(); // button -> Set of pointer ids
   for (const el of document.querySelectorAll('.btn')) {
     const b = el.dataset.b;
+    fingers.set(b, new Set());
     const down = e => {
       e.preventDefault();
       el.setPointerCapture?.(e.pointerId);
-      if (held.has(b)) return;
+      const ids = fingers.get(b);
+      const first = ids.size === 0;
+      ids.add(e.pointerId);
+      if (!first) return;
       held.add(b);
       el.classList.add('pressed');
       navigator.vibrate?.(30);
@@ -111,7 +119,8 @@
     };
     const up = e => {
       e.preventDefault();
-      if (!held.has(b)) return;
+      const ids = fingers.get(b);
+      if (!ids.delete(e.pointerId) || ids.size > 0) return;
       held.delete(b);
       el.classList.remove('pressed');
       send({ t: 'btn', b, down: false });
@@ -125,6 +134,7 @@
   function releaseAll() {
     for (const b of held) send({ t: 'btn', b, down: false });
     held.clear();
+    for (const ids of fingers.values()) ids.clear();
     for (const el of document.querySelectorAll('.btn.pressed')) el.classList.remove('pressed');
   }
 
@@ -150,6 +160,10 @@
       if (act === 'close') sheet(null);
       else if (act === 'invite') sheet('invite');
       else if (act === 'language') sheet('lang-sheet');
+      else if (act === 'sound') {
+        sheet(null);
+        send({ t: 'sound', on: !state.sound });
+      }
       else if (act === 'leave') {
         sheet(null);
         releaseAll();
