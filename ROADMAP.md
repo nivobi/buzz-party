@@ -1,102 +1,88 @@
-# Buzz Party roadmap
+# Roadmap
 
-Where Buzz Party is headed, roughly in order. Each phase should be usable on its
-own before the next one starts.
+Where Buzz Party is headed, roughly in order. This is a plan, not a promise:
+priorities change, and help is welcome. If you want to pick something up, open
+an issue first so we can talk about it.
 
-## Now (v1, done)
+## What works today
 
-- macOS app: double-click, game picker on the TV, phones join by QR code.
-- Phones as Buzz! buzzers (red + blue/orange/green/yellow), up to 4 players.
-- PCSX2 runs underneath with its own settings, invisible to the family.
-- Buzz! Junior titles recognised by disc ID (all regions).
-- Played and working: RoboJam with one phone on the Mac's own screen.
-
-## Picker update (done 2026-10-21)
-
-- Carousel game picker: big centred cover with a yellow glow, neighbours dimmed
-  at the sides, blue/orange slides (wraps around), red plays.
-- Real cover art, downloaded once per disc from the community collection PCSX2
-  uses, into `~/BuzzParty/Covers`; your own image always wins; a coloured name
-  card stands in when there's no cover or no internet.
-- Big game name with a language line underneath (from the file name, Danish
-  first), so e.g. US and Danish versions are easy to tell apart.
-- Phones show the selected game in their status line.
-- Builds signed with a local self-signed certificate, so macOS keeps the
-  Accessibility permission across rebuilds.
-
-## Languages, intro, sounds and Linux (done 2026-11-04)
-
-- English and Danish UI, chosen on first run with flags (on the TV and on
-  phones) and remembered in `~/BuzzParty/settings.json`; changeable from the
-  phone menu. New languages are one JSON file plus a flag
+- **macOS app:** double-click, a game picker on the TV, phones join by QR code.
+- **Phones as Buzz! buzzers:** red plus blue, orange, green and yellow, up to
+  four players.
+- **PCSX2 underneath:** runs with its own settings, so nobody has to use an
+  emulator menu.
+- **Buzz! Junior titles** are recognised by disc ID (all regions).
+- **Game picker:** carousel with cover art (downloaded once per disc, your own
+  image always wins), the game's title, and the languages the disc supports.
+- **Languages:** English and Danish UI, chosen on first run with flags and
+  changeable from the phone menu. A new language is one JSON file plus a flag
   (`web/i18n/`, `web/flags/`).
-- Startup intro (glowing towers, title, chime) and small sounds when browsing
+- **Startup intro and sounds:** a short intro and small sounds when browsing
   and picking a game, all generated in code.
-- README and MIT license.
-- Linux, first pass: a `/dev/uinput` key helper and `LinuxBridge`, finding and
-  starting PCSX2 (AppImage or `pcsx2-qt`), `xdotool` focus/placement, Linux
-  setup messages, and `npm run dist:linux`. The key bridge and the whole test
-  suite are verified on Ubuntu 24.04 (x86-64); everything that needs a desktop
-  and a GPU is not tried yet (see section 6).
+- **Linux, first pass:** a `/dev/uinput` key helper and bridge, finding and
+  starting PCSX2 (AppImage or `pcsx2-qt`), `xdotool` window focus, and
+  `npm run dist:linux`. The key bridge and the test suite are verified on
+  Ubuntu 24.04 (x86-64); the parts that need a desktop and a GPU are not tried
+  yet (see "Linux and console mode").
 
-## 1. Ready for family game night
+## 1. Stabilise
 
-- [x] First Danish game: Buzz! Junior: Monster Rumble (EU, with Dansk).
-- [ ] Start Monster Rumble and check its language menu offers Dansk; if it
-      follows the console language instead, set PCSX2's system language.
-- [ ] Rip the family's own Buzz! Junior discs to ISO (DVD drive from the old PC,
-      in the desktop with ImgBurn or over USB to the Mac).
-- [ ] Rehearsal on the TV over HDMI: extended desktop and mirrored.
-- [ ] 2–4 phones at once, at least one iPhone and one Android.
-- [ ] Real-life failure checks: phone locks mid-game, Wi-Fi drops for 2 minutes,
-      "Invite a player", "Back to games", "Turn off".
+Make what exists solid before adding more.
+
+- [ ] Test with 2–4 phones at once, including at least one iPhone and one Android.
+- [ ] Failure checks: a phone locks mid-game, Wi-Fi drops for a couple of
+      minutes, "Invite a player", "Back to games", "Turn off".
 - [ ] Find out whether iPhones dim their screen mid-game over plain HTTP; if so,
-      add the hidden-looping-video keep-awake fallback.
-- [ ] Known small issues from the v1 review:
+      add a keep-awake fallback.
+- [ ] Test on a TV over HDMI, with both an extended and a mirrored desktop.
+- [ ] Check how each game chooses its in-game language (disc menu or console
+      setting) and, if needed, let the user set it.
+- [ ] Known small issues:
   - [ ] Focus requests can briefly delay buzzer presses (run focus off the key queue).
-  - [ ] Helper process: handle spawn errors, respawn more than once, tell the TV
-        if buzzers are dead.
+  - [ ] Key helper: respawn more than once, and tell the TV if the buzzers are dead.
   - [ ] On quit: release held keys and wait for PCSX2 to stop.
-  - [ ] Show an error and quit if startup fails (e.g. no free port).
-  - [ ] Two fingers on the same phone button: first lift releases it.
-  - [ ] Exclude Parallels (`vnic*`) network adapters from the join address.
+  - [ ] Show an error and quit if startup fails (for example no free port).
+  - [ ] Two fingers on the same phone button: the first lift releases it.
+  - [ ] Exclude virtual network adapters (for example Parallels `vnic*`) from the join address.
   - [ ] Don't list stray `.bin` files as games; better titles for `.iso.gz`.
-  - [ ] Phone invite screen: hide the QR when there's no join address.
-  - [ ] Look into a rare flaky server test (hello → close).
-- [ ] Watch for Mac freezes: one kernel panic (WindowServer) happened with
-      Buzz Party already closed, one freeze during a PCSX2 test. If it happens
-      during a game, note the time and try PCSX2's Vulkan or software renderer.
+  - [ ] Phone invite screen: hide the QR code when there is no join address.
+  - [ ] A rare flaky server test (hello, then close).
+- [ ] Investigate reports of freezes during emulation (try PCSX2's Vulkan or
+      software renderer).
 - [ ] App icon.
 
-## 2. Windows
+## 2. Linux and console mode
 
-- [ ] Spike on the home Windows PC: PCSX2 Windows build, Buzz keys via `SendInput`,
-      focus handling.
-- [ ] Windows input bridge + PCSX2 launcher branch (find the install, portable
-      folder support).
+A small PC running Linux that boots straight into Buzz Party: automatic login,
+no desktop.
+
+- [x] Linux key bridge (`/dev/uinput`), verified on real Linux.
+- [x] Linux PCSX2 launch (AppImage or `pcsx2-qt`) and packaging.
+- [ ] Verify on a real Linux desktop with a GPU: PCSX2 starts and uses Vulkan,
+      sound over HDMI, the game window goes fullscreen on the TV, window focus
+      and placement, the packaged app starts (Chromium sandbox).
+- [ ] Check that the PCSX2 AppImage's process id matches the one the app tracks.
+- [ ] Document an automatic-login-and-start setup for a minimal install.
+- [ ] "Turn off" from a phone shuts the machine down in kiosk mode.
+- [ ] First-run language chooser needs a phone or a mouse today; add keyboard
+      or remote navigation.
+- [ ] Decide whether the intro plays on every launch or only on a cold boot.
+- [ ] Wayland support for window focus and placement (today it needs X11).
+
+## 3. Windows
+
+- [ ] Spike: PCSX2 Windows build, Buzz keys via `SendInput`, focus handling.
+- [ ] Windows input bridge and PCSX2 launcher branch (find the install,
+      portable folder support).
 - [ ] Windows installer (electron-builder NSIS) and first-run checks.
 
-## 3. Every PS2 Buzz! game
+## 4. Every PS2 Buzz! game
 
-- [ ] Add the adult Buzz! titles to the title list. PCSX2's GameDB has 38 titles /
-      76 discs (The Music Quiz, The Big Quiz, The Sports Quiz, The Mega Quiz,
-      The Pop Quiz, The Hollywood Quiz, Brain of the World/UK/…, and regional
-      editions), all using the same buzzers.
-- [ ] Test at least one adult Buzz! game end to end.
+- [ ] Add the other Buzz! titles to the title list. PCSX2's game database has
+      38 titles / 76 discs (the quiz series, Brain of the World/UK and more,
+      with regional editions), all using the same buzzers.
+- [ ] Test at least one of the quiz games end to end.
 - [ ] Optional per-game settings if any title needs PCSX2 tweaks.
-
-## 4. Going public (decide after 1–3)
-
-- [ ] Prior-art check: existing phone-buzzer projects for PCSX2/RPCS3, and what
-      people ask for on Reddit / PCSX2 forums.
-- [x] README with setup guide. Still to add: how to dump your own BIOS and rip
-      your own discs (link to PCSX2's guides), and screenshots.
-- [x] Pick a license (MIT).
-- [ ] Signed + notarized builds (Apple Developer ID) so other people's Macs
-      don't warn on download. (On this Mac, a local certificate already keeps
-      permissions across rebuilds.)
-- [x] Never ship a BIOS or game images (`.gitignore` blocks them; the README says so).
-- [ ] Link to PCSX2's legal BIOS-dumping guide from the README.
 
 ## 5. PS3 Buzz! games (RPCS3)
 
@@ -104,28 +90,20 @@ own before the next one starts.
 - [ ] Emulator abstraction so the picker can launch PS2 or PS3 games.
 - [ ] Buzz! Quiz World, Buzz! Quiz TV and friends.
 
-## 6. Console mode
+## 6. Distribution
 
-A cheap mini PC running Linux that boots straight into Buzz Party (kiosk,
-auto-login, no desktop).
+- [x] README with a setup guide.
+- [x] MIT license.
+- [x] Never ship a BIOS or game images (`.gitignore` blocks them; the README says so).
+- [ ] README: link to PCSX2's guides for dumping your own BIOS and discs, and
+      add screenshots.
+- [ ] Signed and notarized macOS builds (Apple Developer ID), so downloads
+      don't trigger warnings.
+- [ ] Prebuilt releases on GitHub.
 
-- [x] Linux input bridge (`/dev/uinput`), verified on real Linux.
-- [x] Linux PCSX2 launch (AppImage / `pcsx2-qt`) and packaging code.
-- [ ] Verify on a real Linux desktop with a GPU: PCSX2 starts and picks Vulkan,
-      sound over HDMI, the game window goes fullscreen on the TV, `xdotool`
-      focus and placement, the packaged app starts (sandbox).
-- [ ] Check the PCSX2 AppImage process id matches the one the app tracks.
-- [ ] Auto-login and start script for a minimal install; document it in the README.
-- [ ] "Turn off" from a phone shuts the machine down (kiosk setup).
-- [ ] First-run language chooser works with only a phone or a mouse today; add
-      keyboard/remote navigation.
-- [ ] Decide whether the intro plays on every launch or only on a cold boot.
-- [ ] Wayland support for focus/placement (today needs an X11 session).
-- [ ] For personal use: never give devices away with a BIOS or games on them.
+## 7. Ideas
 
-## 7. Polish and ideas
-
-- [ ] More UI languages (German, Swedish, Norwegian...); a native-speaker pass
-      over the Danish texts.
-- [ ] The "Scan for at deltage" text in the TV join box wraps onto two lines; tune the layout.
-- [ ] A setting for sound effects volume or off.
+- [ ] More UI languages (German, Swedish, Norwegian, ...), and a native-speaker
+      review of the existing translations.
+- [ ] A setting for sound-effect volume, or off.
+- [ ] Tidy the TV join box layout: some translations wrap onto two lines.
