@@ -18,14 +18,11 @@ touch an emulator menu.
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/tv-intro.jpg" width="355" alt="The startup intro: glowing towers and the Buzz Party title">
-  <img src="docs/screenshots/tv-chooser.png" width="355" alt="First-run language chooser with flags and a QR code">
+  <img src="docs/screenshots/tv-intro-and-language.png" width="720" alt="The startup intro with glowing towers, and the first-run language chooser with flags">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/phone-pick.png" width="170" alt="Phone: choose which player you are">
-  <img src="docs/screenshots/phone-buzzer.png" width="170" alt="Phone: the buzzer with the red button and blue, orange, green and yellow buttons">
-  <img src="docs/screenshots/phone-chooser.png" width="170" alt="Phone: language chooser">
+  <img src="docs/screenshots/phones.png" width="720" alt="On a phone: choose which player you are, the buzzer, and the menu with invite, language and sound">
 </p>
 
 The screenshots use plain name cards for the games. With your own discs the
