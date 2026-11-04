@@ -67,7 +67,7 @@
       return;
     }
     $('player').textContent = i18n.t('phone.player', { n: state.you });
-    const game = state.selectedTitle ? state.selectedTitle.replace(/^Buzz! Junior: /, '') : '';
+    const game = state.selectedTitle ? state.selectedTitle.replace(/^Buzz!( Junior:)? /, '') : '';
     $('status').textContent =
       state.mode === 'picker' && game ? `◀ ${game} ▶` :
       state.mode === 'waiting' && game ? i18n.t('phone.status.waitingGame', { game }) :
