@@ -66,7 +66,7 @@ app.whenReady().then(async () => {
   let port = PORT;
   async function check(promptTrust: boolean): Promise<{ games: Game[]; problems: string[]; join: Join | null }> {
     const problems: string[] = [];
-    if (!pcsx2Path) problems.push(t('problem.pcsx2'));
+    if (!pcsx2Path) problems.push(t(process.platform === 'linux' ? 'problem.pcsx2.linux' : 'problem.pcsx2'));
     biosFile = pickBios(await readdir(p.bios).catch(() => []));
     if (!biosFile) problems.push(t('problem.bios', { path: p.bios }));
     const games = await scanGames(p.games);
@@ -81,7 +81,7 @@ app.whenReady().then(async () => {
       });
     if (games.length === 0) problems.push(t('problem.games', { path: p.games }));
     if (!(await bridge.isTrusted(promptTrust))) {
-      problems.push(t('problem.accessibility'));
+      problems.push(t(process.platform === 'linux' ? 'problem.input.linux' : 'problem.accessibility'));
     }
     const ip = pickLanIp(networkInterfaces(), await defaultRouteInterface());
     let join: Join | null = null;
@@ -95,7 +95,7 @@ app.whenReady().then(async () => {
   }
 
   const controller = new Controller({ slots, presser, runner, games: [], problems: ['Starting…'], join: null, quit: () => app.quit(),
-    lang, t,
+    lang, t, platform: process.platform,
     setLang: async next => {
       if (!isLang(next) || next === lang) return;
       lang = next;

@@ -265,3 +265,13 @@ describe('language', () => {
     await vi.waitFor(() => expect(c.tvState().problems).toContain('t:error.launch:PCSX2 did not start'));
   });
 });
+
+test('the TV is told which OS the app runs on', () => {
+  const mk = (platform?: string) => new Controller({
+    slots: new SlotManager({ now: () => 0, releaseAfterMs: 90_000 }),
+    presser: new Presser(new FakeBridge(), { minHoldMs: 0 }),
+    runner: new FakeRunner(), games: [game('A')], problems: [], join: null, quit: vi.fn(), platform,
+  });
+  expect(mk('linux').tvState().platform).toBe('linux');
+  expect(mk().tvState().platform).toBe(process.platform);
+});

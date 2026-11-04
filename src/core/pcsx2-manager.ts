@@ -1,5 +1,5 @@
 import { execFile, spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { accessSync, constants, existsSync, readdirSync, statSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -21,13 +21,57 @@ export function findPcsx2(): string | null {
       if (existsSync(p)) return p;
     }
   }
+  if (process.platform === 'linux') return findLinuxPcsx2();
   return null;
+}
+
+const LINUX_DIRS = (home: string) => ['/opt/pcsx2', join(home, 'Applications'), join(home, 'BuzzParty'), join(home, '.local/bin'), '/usr/local/bin'];
+
+/**
+ * PCSX2 on Linux: $PCSX2_PATH, then an AppImage in a few usual folders (newest
+ * name first), then `pcsx2-qt` or `pcsx2` on the PATH.
+ */
+export function findLinuxPcsx2(o: { env?: NodeJS.ProcessEnv; home?: string; dirs?: string[] } = {}): string | null {
+  const env = o.env ?? process.env;
+  const home = o.home ?? homedir();
+  const runnable = (p: string) => {
+    try {
+      accessSync(p, constants.X_OK);
+      return statSync(p).isFile();
+    } catch {
+      return false;
+    }
+  };
+  if (env.PCSX2_PATH && runnable(env.PCSX2_PATH)) return env.PCSX2_PATH;
+  for (const dir of o.dirs ?? LINUX_DIRS(home)) {
+    let names: string[];
+    try {
+      names = readdirSync(dir);
+    } catch {
+      continue;
+    }
+    const hit = names.filter(n => /^pcsx2.*\.appimage$/i.test(n)).sort().reverse().find(n => runnable(join(dir, n)));
+    if (hit) return join(dir, hit);
+  }
+  for (const dir of (env.PATH ?? '').split(':').filter(Boolean)) {
+    for (const name of ['pcsx2-qt', 'pcsx2']) if (runnable(join(dir, name))) return join(dir, name);
+  }
+  return null;
+}
+
+/** How to start PCSX2 on this OS: the command, its args and extra environment. */
+export function pcsx2Command(platform: NodeJS.Platform, appPath: string, args: string[]): { cmd: string; args: string[]; env: Record<string, string> } {
+  // macOS: `open -W` stays alive until PCSX2 quits; going through the app
+  // bundle keeps macOS Gatekeeper happy.
+  if (platform === 'darwin') return { cmd: 'open', args: ['-n', '-W', '-a', appPath, '--args', ...args], env: {} };
+  // Linux: run it directly. X11 (xcb) so xdotool can focus and place its window.
+  return { cmd: appPath, args, env: { QT_QPA_PLATFORM: 'xcb' } };
 }
 
 /** The OS side of running PCSX2, swappable for tests. */
 export interface ProcessDeps {
-  /** Runs `open` with these args; its exit means PCSX2 has quit. */
-  spawnOpen(args: string[]): { kill(): boolean; once(e: 'exit', cb: () => void): unknown; on(e: 'exit', cb: () => void): unknown };
+  /** Starts PCSX2 with these args; the returned process exits when PCSX2 has quit. */
+  spawnPcsx2(appPath: string, args: string[]): { kill(): boolean; once(e: 'exit', cb: () => void): unknown; on(e: 'exit', cb: () => void): unknown };
   /** Pids of every running PCSX2. */
   listPids(): Promise<number[]>;
   kill(pid: number, signal: 'SIGTERM' | 'SIGKILL'): void;
@@ -35,10 +79,16 @@ export interface ProcessDeps {
 }
 
 export const realProcessDeps: ProcessDeps = {
-  spawnOpen: args => spawn('open', args, { stdio: 'ignore' }),
+  spawnPcsx2: (appPath, args) => {
+    const c = pcsx2Command(process.platform, appPath, args);
+    return spawn(c.cmd, c.args, { stdio: 'ignore', env: { ...process.env, ...c.env } });
+  },
   listPids: async () => {
     try {
-      const { stdout } = await promisify(execFile)('pgrep', ['-f', 'PCSX2.app/Contents/MacOS/PCSX2']);
+      // The Linux AppImage's real process is named pcsx2-qt; -x avoids matching
+      // this app's own command line.
+      const pgrepArgs = process.platform === 'darwin' ? ['-f', 'PCSX2.app/Contents/MacOS/PCSX2'] : ['-x', 'pcsx2-qt'];
+      const { stdout } = await promisify(execFile)('pgrep', pgrepArgs);
       return stdout.split('\n').map(Number).filter(n => n > 0);
     } catch {
       return [];
@@ -62,7 +112,7 @@ export interface LaunchOptions {
   tvBounds?: Rect;
 }
 
-type Child = ReturnType<ProcessDeps['spawnOpen']>;
+type Child = ReturnType<ProcessDeps['spawnPcsx2']>;
 
 /** Runs one game at a time in PCSX2 with Buzz Party's own data dir. */
 export class Pcsx2Manager {
@@ -104,9 +154,7 @@ export class Pcsx2Manager {
 
     this.foreign = new Set(await this.d.listPids());
     if (cancelled()) throw new LaunchCancelled('Stopped before the game started');
-    // `open -W` stays alive until PCSX2 quits; going through the app bundle
-    // keeps macOS Gatekeeper happy.
-    const child = this.d.spawnOpen(['-n', '-W', '-a', this.o.appPath, '--args',
+    const child = this.d.spawnPcsx2(this.o.appPath, [
       '-batch', '-nogui', l.tvBounds ? '-nofullscreen' : '-fullscreen',
       '-datapath', this.o.dataDir, '--', game.path]);
     this.child = child;

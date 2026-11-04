@@ -34,6 +34,8 @@ export type TvState = {
   qr: string | null;
   problems: string[];
   gameTitle: string | null;
+  /** The OS the app runs on (process.platform), so the TV can hide hints that only apply to macOS. */
+  platform: string;
   /** UI language; null until someone has picked one. */
   lang: string | null;
 };

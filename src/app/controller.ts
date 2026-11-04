@@ -28,6 +28,8 @@ export interface ControllerDeps {
   lang?: string | null;
   /** Called when a phone or the TV picks a language. */
   setLang?: (lang: string) => void;
+  /** process.platform; defaults to the real one. */
+  platform?: string;
   /** Translates a message key into the current language. */
   t?: (key: string, params?: Record<string, string | number>) => string;
 }
@@ -99,6 +101,7 @@ export class Controller {
       qr: this.d.join?.qr ?? null,
       problems,
       gameTitle: this.current?.title ?? null,
+      platform: this.d.platform ?? process.platform,
       lang: this.lang(),
     };
   }

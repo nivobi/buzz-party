@@ -19,7 +19,7 @@ function fakeOs(o: { pids: number[]; ourPid: number; appearsAfter: number; obeys
   const killed: [number, string][] = [];
   const state = { spawned: false };
   const deps: ProcessDeps = {
-    spawnOpen: () => { state.spawned = true; return child; },
+    spawnPcsx2: () => { state.spawned = true; return child; },
     listPids: async () => (++polls > o.appearsAfter ? [...o.pids, o.ourPid] : [...o.pids]),
     kill: (pid, sig) => {
       killed.push([pid, sig]);

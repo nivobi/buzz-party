@@ -44,6 +44,8 @@
       await i18n.setLang(s.lang);
     }
     if (s.mode === 'setup') {
+      // The "allow incoming connections" prompt is a macOS thing.
+      $('setup-hint').hidden = s.platform !== 'darwin';
       $('problems').replaceChildren(...s.problems.map(p => Object.assign(document.createElement('li'), { textContent: p })));
       return show('setup');
     }
