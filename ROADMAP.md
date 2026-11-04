@@ -11,7 +11,9 @@ an issue first so we can talk about it.
   four players.
 - **PCSX2 underneath:** runs with its own settings, so nobody has to use an
   emulator menu.
-- **Buzz! Junior titles** are recognised by disc ID (all regions).
+- **Buzz! titles** are recognised by disc ID in all regions: the Junior games
+  (tested) and the quiz games and regional editions (names and covers only, not
+  tested yet).
 - **Game picker:** carousel with cover art (downloaded once per disc, your own
   image always wins), the game's title, and the languages the disc supports.
 - **Languages:** English and Danish UI, chosen on first run with flags and
@@ -81,9 +83,9 @@ no desktop.
 
 ## 4. Every PS2 Buzz! game
 
-- [ ] Add the other Buzz! titles to the title list. PCSX2's game database has
-      38 titles / 76 discs (the quiz series, Brain of the World/UK and more,
-      with regional editions), all using the same buzzers.
+- [x] The other Buzz! titles are in the title list (94 discs from PCSX2's game
+      database: the quiz series, Brain of the World/UK and more, with regional
+      editions), so they get proper names and cover art.
 - [ ] Test at least one of the quiz games end to end.
 - [ ] Optional per-game settings if any title needs PCSX2 tweaks.
 

@@ -1,6 +1,8 @@
 # Buzz Party
 
-Play the PS2 **Buzz! Junior** party games with your phones as buzzers.
+Play the PS2 **Buzz!** party games with your phones as buzzers. Built and tested
+with the **Buzz! Junior** games; the quiz games (The Music Quiz, The Big Quiz and
+so on) are recognised too but have not been tested yet.
 
 Buzz Party is a small desktop app. It shows a game picker on the TV, lets up to
 four people join by scanning a QR code, and turns each phone into a Buzz!
@@ -43,7 +45,7 @@ picker shows the cover art, which is downloaded for you.
 - A Mac, or a Linux PC (experimental). Windows is not supported yet.
 - [PCSX2](https://pcsx2.net) installed (`brew install --cask pcsx2`).
 - A PS2 BIOS dumped from a console you own.
-- Your own Buzz! Junior discs, ripped to `.iso` (or `.chd`, `.cso`, `.gz`).
+- Your own Buzz! discs, ripped to `.iso` (or `.chd`, `.cso`, `.gz`).
 - A TV or monitor, and phones on the **same Wi-Fi** as the computer.
 
 **This project does not include or download games or BIOS files.** You must
