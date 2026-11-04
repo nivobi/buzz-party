@@ -98,8 +98,8 @@ no desktop.
 - [x] README with a setup guide.
 - [x] MIT license.
 - [x] Never ship a BIOS or game images (`.gitignore` blocks them; the README says so).
-- [ ] README: link to PCSX2's guides for dumping your own BIOS and discs, and
-      add screenshots.
+- [x] README screenshots.
+- [ ] README: link to PCSX2's guides for dumping your own BIOS and discs.
 - [ ] Signed and notarized macOS builds (Apple Developer ID), so downloads
       don't trigger warnings.
 - [ ] Prebuilt releases on GitHub.

@@ -11,6 +11,26 @@ touch an emulator menu.
 > Status: works on macOS. **Linux support is experimental** (see
 > [Linux](#linux-experimental)). Windows is planned, see the [roadmap](ROADMAP.md).
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/tv-picker.png" width="720" alt="The game picker on the TV: a carousel of games, the players who joined, and a QR code to scan">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/tv-intro.jpg" width="355" alt="The startup intro: glowing towers and the Buzz Party title">
+  <img src="docs/screenshots/tv-chooser.png" width="355" alt="First-run language chooser with flags and a QR code">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/phone-pick.png" width="170" alt="Phone: choose which player you are">
+  <img src="docs/screenshots/phone-buzzer.png" width="170" alt="Phone: the buzzer with the red button and blue, orange, green and yellow buttons">
+  <img src="docs/screenshots/phone-chooser.png" width="170" alt="Phone: language chooser">
+</p>
+
+The screenshots use plain name cards for the games. With your own discs the
+picker shows the cover art, which is downloaded for you.
+
 ## How it works
 
 1. The app scans `~/BuzzParty/Games` for disc images and shows them in a
