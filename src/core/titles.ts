@@ -22,7 +22,9 @@ const TITLES: Record<string, string> = {
 };
 
 export function titleFor(serial: string | null, fileName: string): string {
-  return (serial && TITLES[serial]) || basename(fileName, extname(fileName));
+  // `Game.iso.gz` should read as `Game`, not `Game.iso`.
+  const bare = basename(fileName, extname(fileName)).replace(/\.(iso|bin|cso|chd)$/i, '');
+  return (serial && TITLES[serial]) || bare;
 }
 
 const LANGUAGES: Record<string, string> = {

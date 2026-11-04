@@ -17,6 +17,7 @@
   "problem.accessibility": "Giv Buzz Party adgang under Systemindstillinger → Anonymitet og sikkerhed → Tilgængelighed",
   "problem.input.linux": "Buzz Party kan ikke oprette sit virtuelle tastatur. Giv din bruger adgang til /dev/uinput (se README).",
   "problem.wifi": "Ikke forbundet til Wi-Fi. Forbind computeren til samme Wi-Fi som telefonerne.",
+  "problem.helper": "Hjælpeprogrammet til buzzer-tasterne er stoppet. Genstart Buzz Party.",
   "error.launch": "Kunne ikke starte spillet: {message}",
   "phone.connecting": "Forbinder…",
   "phone.who": "Hvem er du?",

@@ -30,3 +30,14 @@ test('skips VM bridges', () => {
 test('skips CGNAT/Tailscale range even on an innocent name', () => {
   expect(pickLanIp({ en5: [v4('100.80.1.1')], en1: [v4('192.168.1.50')] }, 'en5')).toBe('192.168.1.50');
 });
+
+test('skips Parallels, ZeroTier, WireGuard and Apple peer-to-peer adapters', () => {
+  expect(pickLanIp({
+    vnic0: [v4('10.211.55.2')],
+    vnic1: [v4('10.37.129.2')],
+    zt0abcd: [v4('10.147.17.5')],
+    wg0: [v4('10.8.0.2')],
+    awdl0: [v4('192.168.99.1')],
+    en0: [v4('192.168.1.9')],
+  })).toBe('192.168.1.9');
+});

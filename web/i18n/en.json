@@ -17,6 +17,7 @@
   "problem.accessibility": "Allow Buzz Party in System Settings → Privacy & Security → Accessibility",
   "problem.input.linux": "Buzz Party can’t create its virtual keyboard. Give your user access to /dev/uinput (see the README).",
   "problem.wifi": "Not connected to Wi-Fi. Connect this computer to the same Wi-Fi as the phones.",
+  "problem.helper": "The buzzer key helper stopped working. Restart Buzz Party.",
   "error.launch": "Couldn’t start the game: {message}",
   "phone.connecting": "Connecting…",
   "phone.who": "Who are you?",

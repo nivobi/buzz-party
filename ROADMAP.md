@@ -38,14 +38,15 @@ Make what exists solid before adding more.
 - [ ] Check how each game chooses its in-game language (disc menu or console
       setting) and, if needed, let the user set it.
 - [ ] Known small issues:
-  - [ ] Focus requests can briefly delay buzzer presses (run focus off the key queue).
-  - [ ] Key helper: respawn more than once, and tell the TV if the buzzers are dead.
-  - [ ] On quit: release held keys and wait for PCSX2 to stop.
-  - [ ] Show an error and quit if startup fails (for example no free port).
-  - [ ] Two fingers on the same phone button: the first lift releases it.
-  - [ ] Exclude virtual network adapters (for example Parallels `vnic*`) from the join address.
-  - [ ] Don't list stray `.bin` files as games; better titles for `.iso.gz`.
-  - [ ] Phone invite screen: hide the QR code when there is no join address.
+  - [x] Focus requests can briefly delay buzzer presses (macOS: key presses and window work now use separate helper processes).
+  - [x] Key helper: restarts up to three times a minute, and the TV says so if the buzzers are dead.
+  - [x] On quit: release held keys and wait for PCSX2 to stop.
+  - [x] Show an error and quit if startup fails (for example no free port).
+  - [x] Two fingers on the same phone button: it stays pressed until the last one lifts.
+  - [x] Exclude virtual network adapters (Parallels, ZeroTier, WireGuard, ...) from the join address.
+  - [x] Better titles for `.iso.gz`.
+  - [ ] Don't list stray `.bin` files as games.
+  - [x] Phone invite screen: hide the QR code when there is no join address.
   - [ ] A rare flaky server test (hello, then close).
 - [ ] Investigate reports of freezes during emulation (try PCSX2's Vulkan or
       software renderer).
@@ -64,9 +65,11 @@ no desktop.
 - [ ] Check that the PCSX2 AppImage's process id matches the one the app tracks.
 - [ ] Document an automatic-login-and-start setup for a minimal install.
 - [ ] "Turn off" from a phone shuts the machine down in kiosk mode.
-- [ ] First-run language chooser needs a phone or a mouse today; add keyboard
-      or remote navigation.
-- [ ] Decide whether the intro plays on every launch or only on a cold boot.
+- [x] First-run language chooser: phone, mouse or keyboard (left/right and Enter).
+- [ ] Remote-control (HDMI-CEC) navigation for the chooser.
+- [x] Intro: plays on every launch by default; `"intro": "boot"` in
+      `~/BuzzParty/settings.json` plays it only within five minutes of the machine
+      starting, `"never"` turns it off.
 - [ ] Wayland support for window focus and placement (today it needs X11).
 
 ## 3. Windows
@@ -105,5 +108,6 @@ no desktop.
 
 - [ ] More UI languages (German, Swedish, Norwegian, ...), and a native-speaker
       review of the existing translations.
-- [ ] A setting for sound-effect volume, or off.
-- [ ] Tidy the TV join box layout: some translations wrap onto two lines.
+- [x] Sounds on or off from the phone menu.
+- [ ] A sound volume setting.
+- [x] TV join box fits the Danish text on one line.

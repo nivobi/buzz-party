@@ -15,5 +15,7 @@ export interface KeyBridge {
   placeWindow(pid: number, r: Rect): Promise<boolean>;
   toggleFullscreen(): void;
   isTrusted(prompt: boolean): Promise<boolean>;
+  /** False when the native helper behind the key presses has died for good. */
+  isAlive?(): boolean;
   dispose(): void;
 }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, dialog, screen } from 'electron';
 import { readFileSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { networkInterfaces, uptime } from 'node:os';
@@ -87,7 +87,9 @@ app.whenReady().then(async () => {
         if (got.some(Boolean) && shouldRecheck(controller.tvState().mode)) controller.update(await check(false));
       });
     if (games.length === 0) problems.push(t('problem.games', { path: p.games }));
-    if (!(await bridge.isTrusted(promptTrust))) {
+    if (bridge.isAlive?.() === false) {
+      problems.push(t('problem.helper'));
+    } else if (!(await bridge.isTrusted(promptTrust))) {
       problems.push(t(process.platform === 'linux' ? 'problem.input.linux' : 'problem.accessibility'));
     }
     const ip = pickLanIp(networkInterfaces(), await defaultRouteInterface());
@@ -168,11 +170,28 @@ app.whenReady().then(async () => {
     if (controller.tvState().mode === 'game') manager?.focus();
   });
 
-  app.on('before-quit', () => {
-    void manager?.stop();
-    bridge.dispose();
-    void server.close();
+  // On quit: let go of held keys, give PCSX2 a moment to stop, then close up.
+  // Without this, a key could stay "pressed" in the OS and PCSX2 could linger.
+  let quitting = false;
+  app.on('before-quit', event => {
+    if (quitting) return;
+    quitting = true;
+    event.preventDefault();
+    const within = (work: Promise<unknown> | undefined, ms: number) =>
+      Promise.race([Promise.resolve(work).catch(() => {}), new Promise(r => setTimeout(r, ms))]);
+    void (async () => {
+      presser.releaseAll();
+      await new Promise(r => setTimeout(r, 100)); // let the key-up reach the helper
+      await within(manager?.stop(), 8000);
+      bridge.dispose();
+      await within(server.close(), 2000);
+    })().finally(() => app.exit(0));
   });
+})
+// A failed start (for example no free port) must be visible, not a silent exit.
+.catch(err => {
+  dialog.showErrorBox('Buzz Party', `Buzz Party could not start.\n\n${err instanceof Error ? err.message : String(err)}`);
+  app.exit(1);
 });
 
 app.on('window-all-closed', () => app.quit());

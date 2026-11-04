@@ -62,6 +62,10 @@ export class LinuxBridge implements KeyBridge {
     return (await this.helper.send('trust 0')) === 'yes';
   }
 
+  isAlive(): boolean {
+    return this.helper.alive;
+  }
+
   dispose(): void {
     this.helper.dispose();
   }

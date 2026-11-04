@@ -3,12 +3,16 @@ import { createInterface } from 'node:readline';
 
 /**
  * A native helper process spoken to one command per line, one reply line per
- * command. Restarted once if it dies; commands then answer "fail".
+ * command. If it dies it is started again, up to MAX_RESTARTS times per
+ * RESTART_WINDOW_MS; after that commands answer "fail" and `alive` is false.
  */
+const MAX_RESTARTS = 3;
+const RESTART_WINDOW_MS = 60_000;
+
 export class HelperProcess {
   private child: ChildProcess | null = null;
   private waiting: ((line: string) => void)[] = [];
-  private respawned = false;
+  private restarts: number[] = [];
 
   constructor(private path: string) {
     this.start();
@@ -24,14 +28,22 @@ export class HelperProcess {
       if (this.child !== child) return;
       this.child = null;
       for (const w of this.waiting.splice(0)) w('fail');
-      if (retry && !this.respawned) {
-        this.respawned = true;
+      if (!retry) return;
+      const now = Date.now();
+      this.restarts = this.restarts.filter(t => now - t < RESTART_WINDOW_MS);
+      if (this.restarts.length < MAX_RESTARTS) {
+        this.restarts.push(now);
         this.start();
       }
     };
     child.on('error', () => died(false));
     child.on('exit', () => died(true));
     child.stdin!.on('error', () => {});
+  }
+
+  /** False once the helper has died for good (it could not start, or kept crashing). */
+  get alive(): boolean {
+    return this.child !== null;
   }
 
   send(cmd: string): Promise<string> {
