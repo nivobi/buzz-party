@@ -50,9 +50,8 @@
     };
   }
 
-  // The game's buzzer light for this player: the red button and the screen edge glow.
+  // The game's buzzer light for this player: the red button glows.
   function setLit(on) {
-    $('buzzer').classList.toggle('lit', on);
     document.querySelector('.btn.red').classList.toggle('lit', on);
   }
 

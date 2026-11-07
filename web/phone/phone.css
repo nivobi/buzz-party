@@ -49,15 +49,13 @@ h1 { text-align: center; font-size: 28px; margin: 12px 0; }
   background: radial-gradient(circle at 35% 30%, #ff7a7a, var(--red) 55%, #8f0f12);
   box-shadow: 0 10px 0 #6d0b0d, 0 14px 24px rgba(0,0,0,.5);
 }
-/* The game lit this player's buzzer: bright button, soft red glow around the screen edge.
+/* The game lit this player's buzzer: only the red button glows.
    Short transitions so the game's fast blinking still reads as blinking. */
 .red { transition: transform 40ms, filter 40ms, box-shadow 50ms, background 50ms; }
 .red.lit {
   background: radial-gradient(circle at 35% 30%, #fff1f1, #ff4d52 45%, var(--red) 75%);
   box-shadow: 0 10px 0 #6d0b0d, 0 0 36px 10px rgba(255, 60, 66, .85), 0 0 90px 24px rgba(255, 40, 46, .45);
 }
-#buzzer { transition: box-shadow 50ms; }
-#buzzer.lit { box-shadow: inset 0 0 40px 10px rgba(255, 40, 46, .55); }
 .red.pressed { transform: translateY(6px) scale(.98); box-shadow: 0 4px 0 #6d0b0d, 0 6px 12px rgba(0,0,0,.5); }
 .red.lit.pressed { box-shadow: 0 4px 0 #6d0b0d, 0 0 36px 10px rgba(255, 60, 66, .85), 0 0 90px 24px rgba(255, 40, 46, .45); }
 .bar { flex: 1; font-size: 22px; font-weight: 900; letter-spacing: .08em; color: rgba(0,0,0,.55); }

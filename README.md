@@ -167,8 +167,7 @@ Buzz Party finds it on its own and prefers it over regular PCSX2. If it won't
 start (for example, macOS blocked it), Buzz Party uses regular PCSX2 instead,
 without lights. With only regular PCSX2 installed, nothing changes.
 
-When the game lights a player's buzzer, that player's red button glows and a
-soft red glow shows around the edge of their screen.
+When the game lights a player's buzzer, that player's red button glows.
 
 For working on the phone page without PCSX2, `BUZZ_FAKE_LIGHTS=1 npm start`
 plays a made-up light show.
