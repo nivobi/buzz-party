@@ -2,7 +2,8 @@ import type { Presser } from '../bridge/presser.js';
 import type { Game } from '../core/games.js';
 import type { SlotManager } from '../core/slots.js';
 import type { Button } from '../shared/keymap.js';
-import type { Mode, PhoneMsg, PhoneState, TvState } from '../shared/protocol.js';
+import type { Lights, Mode, PhoneMsg, PhoneState, TvState } from '../shared/protocol.js';
+import { LIGHTS_OFF } from '../core/lights.js';
 
 /** What the controller needs from the emulator side. */
 export interface GameRunner {
@@ -36,6 +37,8 @@ export interface ControllerDeps {
   platform?: string;
   /** Translates a message key into the current language. */
   t?: (key: string, params?: Record<string, string | number>) => string;
+  /** Accept buzzer lights outside a game too (the BUZZ_FAKE_LIGHTS light show). */
+  lightsAnyMode?: boolean;
 }
 
 /** The whole evening as a state machine: setup → picker/waiting → game → back. */
@@ -45,6 +48,8 @@ export class Controller {
   private current: Game | null = null;
   private launchError: string | null = null;
   private listeners: (() => void)[] = [];
+  private lights: Lights = LIGHTS_OFF;
+  private lightListeners: (() => void)[] = [];
 
   constructor(private d: ControllerDeps) {
     this.mode = this.homeMode();
@@ -53,6 +58,28 @@ export class Controller {
 
   onChange(cb: () => void): void {
     this.listeners.push(cb);
+  }
+
+  onLights(cb: () => void): void {
+    this.lightListeners.push(cb);
+  }
+
+  /** The game set the buzzer lights. Ignored outside a game, so a late resend can't relight a phone. */
+  setLights(l: Lights): void {
+    if (!this.d.lightsAnyMode && this.mode !== 'game' && this.mode !== 'launching') return;
+    this.applyLights(l);
+  }
+
+  /** The light of the slot this phone holds; off without a slot. */
+  lightOf(token: string): boolean {
+    const slot = this.d.slots.slotOf(token);
+    return slot !== null && this.lights[slot - 1];
+  }
+
+  private applyLights(l: Lights): void {
+    if (l.every((on, i) => on === this.lights[i])) return;
+    this.lights = l;
+    for (const cb of this.lightListeners) cb();
   }
 
   update(u: Partial<Pick<ControllerDeps, 'games' | 'problems' | 'join' | 'lang' | 'sound'>>): void {
@@ -182,6 +209,7 @@ export class Controller {
     this.mode = 'launching';
     this.current = game;
     this.launchError = null;
+    this.applyLights(LIGHTS_OFF);
     this.changed();
     try {
       await this.d.runner.launch(game);
@@ -204,6 +232,7 @@ export class Controller {
     if (this.mode !== 'game' && this.mode !== 'launching') return;
     this.mode = this.homeMode();
     this.current = null;
+    this.applyLights(LIGHTS_OFF);
     this.changed();
   }
 

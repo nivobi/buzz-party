@@ -1,4 +1,4 @@
-import { Controller, type GameRunner } from '../src/app/controller.js';
+import { Controller, type ControllerDeps, type GameRunner } from '../src/app/controller.js';
 import { FakeBridge } from '../src/bridge/fake.js';
 import { Presser } from '../src/bridge/presser.js';
 import type { Game } from '../src/core/games.js';
@@ -22,14 +22,14 @@ class FakeRunner implements GameRunner {
   crash() { this.exitCb?.(); }
 }
 
-function setup(games = [game('A'), game('B'), game('C')], problems: string[] = []) {
+function setup(games = [game('A'), game('B'), game('C')], problems: string[] = [], extra: Partial<ControllerDeps> = {}) {
   let now = 0;
   const bridge = new FakeBridge();
   const presser = new Presser(bridge, { minHoldMs: 0 });
   const slots = new SlotManager({ now: () => now, releaseAfterMs: 90_000 });
   const runner = new FakeRunner();
   const quit = vi.fn();
-  const c = new Controller({ slots, presser, runner, games, problems, join: { url: 'http://x', qr: 'data:qr' }, quit });
+  const c = new Controller({ slots, presser, runner, games, problems, join: { url: 'http://x', qr: 'data:qr' }, quit, ...extra });
   const changes = vi.fn();
   c.onChange(changes);
   const join = (token: string, slot: 1 | 2 | 3 | 4) => {
@@ -300,5 +300,64 @@ describe('sound setting', () => {
     expect(setSound).toHaveBeenCalledWith(false);
     c.update({ sound: false });
     expect(c.tvState().sound).toBe(false);
+  });
+});
+
+describe('buzzer lights', () => {
+  test('in game, lightOf follows the slot', async () => {
+    const s = await inGame(); // p = slot 1, q = slot 2
+    const lit = vi.fn();
+    s.c.onLights(lit);
+    s.c.setLights([true, false, false, false]);
+    expect(s.c.lightOf('p')).toBe(true);
+    expect(s.c.lightOf('q')).toBe(false);
+    expect(s.c.lightOf('nobody')).toBe(false);
+    expect(lit).toHaveBeenCalledTimes(1);
+  });
+
+  test('same lights again do not notify', async () => {
+    const s = await inGame();
+    const lit = vi.fn();
+    s.c.onLights(lit);
+    s.c.setLights([false, true, false, false]);
+    s.c.setLights([false, true, false, false]);
+    expect(lit).toHaveBeenCalledTimes(1);
+  });
+
+  test('lightOf follows the slot', async () => {
+    const s = await inGame();
+    s.c.setLights([false, false, true, false]);
+    expect(s.c.lightOf('p')).toBe(false);
+    s.c.phone('p', { t: 'menu', action: 'leave' });
+    s.c.phone('p', { t: 'claim', slot: 3 });
+    expect(s.c.lightOf('p')).toBe(true);
+  });
+
+  test('game end turns all lights off', async () => {
+    const s = await inGame();
+    s.c.setLights([true, true, false, false]);
+    const lit = vi.fn();
+    s.c.onLights(lit);
+    s.runner.crash();
+    expect(s.c.lightOf('p')).toBe(false);
+    expect(s.c.lightOf('q')).toBe(false);
+    expect(lit).toHaveBeenCalledTimes(1);
+  });
+
+  test('lights arriving outside a game are ignored', async () => {
+    const s = await inGame();
+    s.runner.crash();
+    const lit = vi.fn();
+    s.c.onLights(lit);
+    s.c.setLights([true, true, true, true]);
+    expect(s.c.lightOf('p')).toBe(false);
+    expect(lit).not.toHaveBeenCalled();
+  });
+
+  test('lightsAnyMode accepts lights in the picker', () => {
+    const s = setup(undefined, [], { lightsAnyMode: true });
+    s.join('p', 1);
+    s.c.setLights([true, false, false, false]);
+    expect(s.c.lightOf('p')).toBe(true);
   });
 });
