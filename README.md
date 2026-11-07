@@ -93,10 +93,15 @@ one, so the permission survives rebuilds. Without it the app is signed ad hoc:
 it works, but macOS asks again after every rebuild. To create the certificate
 once:
 
-1. Open **Keychain Access** → menu **Keychain Access → Certificate Assistant →
-   Create a Certificate…**
-2. Name: `Buzz Party Local Signing`. Identity Type: **Self Signed Root**.
-   Certificate Type: **Code Signing**. Click **Create**.
+1. Open Certificate Assistant from Terminal (newer macOS versions open the
+   Passwords app instead of Keychain Access, which hides this tool):
+   `open "/System/Library/CoreServices/Certificate Assistant.app"`
+2. Choose **Create a certificate for yourself** and click **Continue**.
+3. Name: `Buzz Party Local Signing`. Identity Type: **Self-Signed Root**.
+   Certificate Type: **Code Signing** (the default is S/MIME, so change it).
+   Click **Create** and confirm.
+4. Check it worked: `security find-identity -p codesigning` lists
+   "Buzz Party Local Signing" (shown as not trusted, which is fine).
 
 To use a different certificate, set `BUZZ_SIGN_IDENTITY` to its name.
 
