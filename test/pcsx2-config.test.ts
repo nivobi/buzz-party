@@ -61,3 +61,15 @@ test('other sections are untouched', () => {
   expect(section(ini, 'EmuCore/GS')).toEqual(section(template, 'EmuCore/GS'));
   expect(section(ini, 'Hotkeys')).toEqual(section(template, 'Hotkeys'));
 });
+
+test('USB1 carries the light port when given', () => {
+  const ini = buildPcsx2Ini(template, { ...opts, ledUdpPort: 9876 });
+  expect(value(ini, 'USB1', 'BuzzDevice_LedUdpPort')).toBe('9876');
+  expect(value(ini, 'USB1', 'Type')).toBe('BuzzDevice');
+  for (const s of SLOTS) for (const b of BUTTONS) expect(value(ini, 'USB1', pcsx2BindingName(s, b))).toBe(`Keyboard/${keyFor(s, b)}`);
+});
+
+test('no light port line without a port', () => {
+  expect(buildPcsx2Ini(template, opts)).not.toContain('LedUdpPort');
+  expect(buildPcsx2Ini(template, { ...opts, ledUdpPort: 0 })).not.toContain('LedUdpPort');
+});

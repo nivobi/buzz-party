@@ -127,7 +127,7 @@ export class Pcsx2Manager {
   private cancelledId = -1;
   private d: ProcessDeps;
 
-  constructor(private o: { appPath: string; dataDir: string; template: string; bridge: KeyBridge; deps?: ProcessDeps }) {
+  constructor(private o: { appPath: string; dataDir: string; template: string; bridge: KeyBridge; deps?: ProcessDeps; ledUdpPort?: number }) {
     this.d = o.deps ?? realProcessDeps;
   }
 
@@ -147,6 +147,7 @@ export class Pcsx2Manager {
       biosDir: l.biosDir,
       biosFile: l.biosFile,
       startFullscreen: !l.tvBounds,
+      ledUdpPort: this.o.ledUdpPort,
     });
     const iniPath = pcsx2IniPath(this.o.dataDir);
     await mkdir(dirname(iniPath), { recursive: true });

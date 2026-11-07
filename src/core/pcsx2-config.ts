@@ -45,7 +45,7 @@ function set(sections: Section[], name: string, key: string, value: string): voi
 /** PCSX2.ini for Buzz Party, patched from an ini PCSX2 generated itself. */
 export function buildPcsx2Ini(
   template: string,
-  o: { biosDir: string; biosFile: string; startFullscreen: boolean },
+  o: { biosDir: string; biosFile: string; startFullscreen: boolean; ledUdpPort?: number },
 ): string {
   const sections = parse(template);
 
@@ -66,6 +66,8 @@ export function buildPcsx2Ini(
   usb1.lines = [
     'Type = BuzzDevice',
     ...SLOTS.flatMap(s => BUTTONS.map(b => `${pcsx2BindingName(s, b)} = Keyboard/${keyFor(s, b)}`)),
+    // Our patched PCSX2 sends the buzzer lights here; stock PCSX2 ignores it.
+    ...(o.ledUdpPort && o.ledUdpPort > 0 ? [`BuzzDevice_LedUdpPort = ${o.ledUdpPort}`] : []),
     '',
     '',
   ];
