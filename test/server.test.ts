@@ -210,3 +210,65 @@ test('sound messages need a real boolean', async () => {
     ['phone', 'tok', { t: 'sound', on: false }],
   ]);
 });
+
+class LightHub extends FakeHub {
+  lights: Record<string, boolean> = {};
+  private lightCbs: (() => void)[] = [];
+  tvState() { return { mode: 'game' } as any; }
+  lightOf(token: string) { return this.lights[token] ?? false; }
+  onLights(cb: () => void) { this.lightCbs.push(cb); }
+  fireLights() { for (const cb of this.lightCbs) cb(); }
+}
+
+describe('buzzer lights', () => {
+  test('hello gets state then its light', async () => {
+    const { s } = await start(new LightHub());
+    const p = connect(s.port);
+    await p.open;
+    p.ws.send(JSON.stringify({ t: 'hello', token: 'a' }));
+    expect((await p.next(1)).t).toBe('state');
+    expect(await p.next(2)).toEqual({ t: 'light', on: false });
+  });
+
+  test("a light change reaches only the phones, with each phone's own value", async () => {
+    const hub = new LightHub();
+    const { s } = await start(hub);
+    const a = connect(s.port), b = connect(s.port), tv = connect(s.port);
+    await Promise.all([a.open, b.open, tv.open]);
+    a.ws.send(JSON.stringify({ t: 'hello', token: 'a' }));
+    b.ws.send(JSON.stringify({ t: 'hello', token: 'b' }));
+    tv.ws.send('{"t":"tv"}');
+    await Promise.all([a.next(2), b.next(2), tv.next(1)]);
+    hub.lights = { a: true };
+    hub.fireLights();
+    expect(await a.next(3)).toEqual({ t: 'light', on: true });
+    expect(await b.next(3)).toEqual({ t: 'light', on: false });
+    await new Promise(r => setTimeout(r, 20));
+    expect(tv.msgs.filter(m => m.t === 'light')).toEqual([]);
+  });
+
+  test('a state push also carries the light', async () => {
+    const hub = new LightHub();
+    const { s } = await start(hub);
+    const a = connect(s.port);
+    await a.open;
+    a.ws.send(JSON.stringify({ t: 'hello', token: 'a' }));
+    await a.next(2);
+    hub.lights = { a: true };
+    hub.fire();
+    expect((await a.next(3)).t).toBe('state');
+    expect(await a.next(4)).toEqual({ t: 'light', on: true });
+  });
+
+  test('a hub without lights sends no light messages', async () => {
+    const { hub, s } = await start();
+    const a = connect(s.port);
+    await a.open;
+    a.ws.send(JSON.stringify({ t: 'hello', token: 'a' }));
+    await a.next(1);
+    hub.fire();
+    await a.next(2);
+    await new Promise(r => setTimeout(r, 20));
+    expect(a.msgs.map(m => m.t)).toEqual(['state', 'state']);
+  });
+});

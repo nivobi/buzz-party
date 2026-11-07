@@ -4,7 +4,7 @@ import { extname, join, normalize, sep } from 'node:path';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { BUTTONS, SLOTS } from '../shared/keymap.js';
 import { isLang } from '../core/i18n.js';
-import type { PhoneMsg, PhoneState, TvState } from '../shared/protocol.js';
+import type { PhoneLight, PhoneMsg, PhoneState, TvState } from '../shared/protocol.js';
 
 /** The part of the Controller the server talks to. */
 export interface PhoneHub {
@@ -16,6 +16,10 @@ export interface PhoneHub {
   tvState?(): TvState;
   /** The TV page (mouse or remote) picked a language. */
   setLang?(lang: string): void;
+  /** This phone's buzzer light (present on the real Controller). */
+  lightOf?(token: string): boolean;
+  /** Called when any buzzer light changes. */
+  onLights?(cb: () => void): void;
 }
 
 const TYPES: Record<string, string> = {
@@ -111,7 +115,16 @@ export async function startServer(
   const sendTv = (ws: WebSocket) => ws.send(JSON.stringify({ t: 'tv', state: hub.tvState!() }));
   // Attached only after listen succeeds: ws re-emits server errors as its own.
   const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096 });
-  const send = (ws: WebSocket, token: string) => ws.send(JSON.stringify(hub.phoneState(token)));
+  const sendLight = (ws: WebSocket, token: string) => {
+    if (!hub.lightOf) return;
+    const msg: PhoneLight = { t: 'light', on: hub.lightOf(token) };
+    ws.send(JSON.stringify(msg));
+  };
+  // The light follows every state, so a phone that reconnects or changes slot is right at once.
+  const send = (ws: WebSocket, token: string) => {
+    ws.send(JSON.stringify(hub.phoneState(token)));
+    sendLight(ws, token);
+  };
 
   // Sockets replaced by a newer connection from the same phone: their close
   // must not mark the phone disconnected.
@@ -172,6 +185,10 @@ export async function startServer(
   hub.onChange(() => {
     for (const [ws, token] of sockets) if (token && ws.readyState === ws.OPEN) send(ws, token);
     for (const ws of tvs) if (ws.readyState === ws.OPEN) sendTv(ws);
+  });
+
+  hub.onLights?.(() => {
+    for (const [ws, token] of sockets) if (token && ws.readyState === ws.OPEN) sendLight(ws, token);
   });
 
   const actual = (server.address() as { port: number }).port;
