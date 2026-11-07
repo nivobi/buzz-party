@@ -1,7 +1,7 @@
 import { chmodSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FakeBridge } from '../src/bridge/fake.js';
-import { findLinuxPcsx2, pcsx2Command, Pcsx2Manager, type ProcessDeps } from '../src/core/pcsx2-manager.js';
+import { findLinuxPcsx2, findPcsx2Candidates, isBuzzPartyBuild, pcsx2Command, Pcsx2Manager, type ProcessDeps } from '../src/core/pcsx2-manager.js';
 import { tmpDir } from './helpers/make-iso.js';
 
 function exe(dir: string, name: string, mode = 0o755): string {
@@ -79,4 +79,40 @@ test('the manager hands the app path and PCSX2 args to the OS layer', async () =
     args: ['-batch', '-nogui', '-fullscreen', '-datapath', dataDir, '--', '/g.iso'],
   }]);
   await m.stop();
+});
+
+describe('our build first', () => {
+  const has = (...paths: string[]) => (p: string) => paths.includes(p);
+
+  test('mac prefers our build, then stock', () => {
+    const exists = has('/Applications/PCSX2.app', '/Applications/PCSX2-BuzzParty.app');
+    expect(findPcsx2Candidates({ platform: 'darwin', env: {}, home: '/Users/x', exists }))
+      .toEqual(['/Applications/PCSX2-BuzzParty.app', '/Applications/PCSX2.app']);
+  });
+
+  test('mac also looks in ~/Applications', () => {
+    const exists = has('/Users/x/Applications/PCSX2-BuzzParty.app', '/Applications/PCSX2.app');
+    expect(findPcsx2Candidates({ platform: 'darwin', env: {}, home: '/Users/x', exists }))
+      .toEqual(['/Users/x/Applications/PCSX2-BuzzParty.app', '/Applications/PCSX2.app']);
+  });
+
+  test('PCSX2_PATH wins on mac too', () => {
+    const exists = has('/x/My.app', '/Applications/PCSX2.app');
+    expect(findPcsx2Candidates({ platform: 'darwin', env: { PCSX2_PATH: '/x/My.app' }, home: '/Users/x', exists })[0]).toBe('/x/My.app');
+  });
+
+  test('linux prefers a buzzparty AppImage', () => {
+    const d = tmpDir();
+    const stock = exe(d, 'pcsx2-v2.9.0.AppImage');
+    const ours = exe(d, 'pcsx2-buzzparty-2.8.2.AppImage');
+    expect(findPcsx2Candidates({ platform: 'linux', env: {}, dirs: [d], home: d })).toEqual([ours, stock]);
+    expect(findLinuxPcsx2({ env: {}, dirs: [d], home: d })).toBe(ours);
+  });
+
+  test('isBuzzPartyBuild', () => {
+    expect(isBuzzPartyBuild('/Applications/PCSX2-BuzzParty.app')).toBe(true);
+    expect(isBuzzPartyBuild('/home/x/Applications/pcsx2-buzzparty-2.8.2.AppImage')).toBe(true);
+    expect(isBuzzPartyBuild('/Applications/PCSX2.app')).toBe(false);
+    expect(isBuzzPartyBuild('/opt/pcsx2/pcsx2-v2.9.0.AppImage')).toBe(false);
+  });
 });

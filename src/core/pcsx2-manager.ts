@@ -2,7 +2,7 @@ import { execFile, spawn } from 'node:child_process';
 import { accessSync, constants, existsSync, readdirSync, statSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import type { KeyBridge, Rect } from '../bridge/types.js';
 import type { Game } from './games.js';
@@ -14,26 +14,41 @@ export function pcsx2IniPath(dataDir: string): string {
   return join(dataDir, 'PCSX2', 'inis', 'PCSX2.ini');
 }
 
-/** Path to the installed PCSX2, or null. */
+/** Path to the installed PCSX2 (our build first), or null. */
 export function findPcsx2(): string | null {
-  if (process.platform === 'darwin') {
-    for (const p of ['/Applications/PCSX2.app', join(homedir(), 'Applications/PCSX2.app')]) {
-      if (existsSync(p)) return p;
-    }
-  }
-  if (process.platform === 'linux') return findLinuxPcsx2();
-  return null;
+  return findPcsx2Candidates()[0] ?? null;
+}
+
+/** True for the patched Buzz Party build of PCSX2 (it reports the buzzer lights). */
+export function isBuzzPartyBuild(path: string): boolean {
+  const name = basename(path);
+  return name === 'PCSX2-BuzzParty.app' || /^pcsx2-buzzparty.*\.appimage$/i.test(name);
 }
 
 const LINUX_DIRS = (home: string) => ['/opt/pcsx2', join(home, 'Applications'), join(home, 'BuzzParty'), join(home, '.local/bin'), '/usr/local/bin'];
 
 /**
- * PCSX2 on Linux: $PCSX2_PATH, then an AppImage in a few usual folders (newest
- * name first), then `pcsx2-qt` or `pcsx2` on the PATH.
+ * Every PCSX2 worth trying, best first: $PCSX2_PATH, then our patched build,
+ * then stock PCSX2. On Linux stock means an AppImage in a few usual folders
+ * (newest name first), then `pcsx2-qt` or `pcsx2` on the PATH.
  */
-export function findLinuxPcsx2(o: { env?: NodeJS.ProcessEnv; home?: string; dirs?: string[] } = {}): string | null {
+export function findPcsx2Candidates(o: {
+  platform?: NodeJS.Platform; env?: NodeJS.ProcessEnv; home?: string; dirs?: string[]; exists?: (p: string) => boolean;
+} = {}): string[] {
+  const platform = o.platform ?? process.platform;
   const env = o.env ?? process.env;
   const home = o.home ?? homedir();
+  const out: string[] = [];
+  const add = (p: string) => { if (!out.includes(p)) out.push(p); };
+  if (platform === 'darwin') {
+    const exists = o.exists ?? existsSync;
+    if (env.PCSX2_PATH && exists(env.PCSX2_PATH)) add(env.PCSX2_PATH);
+    for (const name of ['PCSX2-BuzzParty.app', 'PCSX2.app']) {
+      for (const dir of ['/Applications', join(home, 'Applications')]) if (exists(join(dir, name))) add(join(dir, name));
+    }
+    return out;
+  }
+  if (platform !== 'linux') return out;
   const runnable = (p: string) => {
     try {
       accessSync(p, constants.X_OK);
@@ -42,7 +57,8 @@ export function findLinuxPcsx2(o: { env?: NodeJS.ProcessEnv; home?: string; dirs
       return false;
     }
   };
-  if (env.PCSX2_PATH && runnable(env.PCSX2_PATH)) return env.PCSX2_PATH;
+  if (env.PCSX2_PATH && runnable(env.PCSX2_PATH)) add(env.PCSX2_PATH);
+  const images: string[] = [];
   for (const dir of o.dirs ?? LINUX_DIRS(home)) {
     let names: string[];
     try {
@@ -50,13 +66,19 @@ export function findLinuxPcsx2(o: { env?: NodeJS.ProcessEnv; home?: string; dirs
     } catch {
       continue;
     }
-    const hit = names.filter(n => /^pcsx2.*\.appimage$/i.test(n)).sort().reverse().find(n => runnable(join(dir, n)));
-    if (hit) return join(dir, hit);
+    images.push(...names.filter(n => /^pcsx2.*\.appimage$/i.test(n)).sort().reverse().map(n => join(dir, n)).filter(runnable));
   }
+  for (const p of images) if (isBuzzPartyBuild(p)) add(p);
+  for (const p of images) add(p);
   for (const dir of (env.PATH ?? '').split(':').filter(Boolean)) {
-    for (const name of ['pcsx2-qt', 'pcsx2']) if (runnable(join(dir, name))) return join(dir, name);
+    for (const name of ['pcsx2-qt', 'pcsx2']) if (runnable(join(dir, name))) add(join(dir, name));
   }
-  return null;
+  return out;
+}
+
+/** The PCSX2 to use on Linux (see findPcsx2Candidates), or null. */
+export function findLinuxPcsx2(o: { env?: NodeJS.ProcessEnv; home?: string; dirs?: string[] } = {}): string | null {
+  return findPcsx2Candidates({ ...o, platform: 'linux' })[0] ?? null;
 }
 
 /** How to start PCSX2 on this OS: the command, its args and extra environment. */
@@ -87,7 +109,7 @@ export const realProcessDeps: ProcessDeps = {
     try {
       // The Linux AppImage's real process is named pcsx2-qt; -x avoids matching
       // this app's own command line.
-      const pgrepArgs = process.platform === 'darwin' ? ['-f', 'PCSX2.app/Contents/MacOS/PCSX2'] : ['-x', 'pcsx2-qt'];
+      const pgrepArgs = process.platform === 'darwin' ? ['-f', 'PCSX2(-BuzzParty)?\\.app/Contents/MacOS/PCSX2'] : ['-x', 'pcsx2-qt'];
       const { stdout } = await promisify(execFile)('pgrep', pgrepArgs);
       return stdout.split('\n').map(Number).filter(n => n > 0);
     } catch {
@@ -125,9 +147,13 @@ export class Pcsx2Manager {
   /** Each launch gets an id; stop() cancels whichever launch is in flight. */
   private launchId = 0;
   private cancelledId = -1;
+  /** Our build's first try: if it exits before it is up, launch() falls back quietly. */
+  private tryingPrimary: Child | null = null;
   private d: ProcessDeps;
 
-  constructor(private o: { appPath: string; dataDir: string; template: string; bridge: KeyBridge; deps?: ProcessDeps; ledUdpPort?: number }) {
+  constructor(private o: { appPath: string; dataDir: string; template: string; bridge: KeyBridge; deps?: ProcessDeps; ledUdpPort?: number;
+    /** Stock PCSX2 to use when appPath (our build) never starts, e.g. blocked by macOS. */
+    fallbackAppPath?: string }) {
     this.d = o.deps ?? realProcessDeps;
   }
 
@@ -155,14 +181,31 @@ export class Pcsx2Manager {
 
     this.foreign = new Set(await this.d.listPids());
     if (cancelled()) throw new LaunchCancelled('Stopped before the game started');
-    const child = this.d.spawnPcsx2(this.o.appPath, [
+    const args = [
       '-batch', '-nogui', l.tvBounds ? '-nofullscreen' : '-fullscreen',
-      '-datapath', this.o.dataDir, '--', game.path]);
-    this.child = child;
-    this.pid = null;
-    child.on('exit', () => this.exited(child));
-
-    const pid = await this.findOurPid(child, 50);
+      '-datapath', this.o.dataDir, '--', game.path];
+    const spawn = (appPath: string): Child => {
+      const c = this.d.spawnPcsx2(appPath, args);
+      this.child = c;
+      this.pid = null;
+      c.on('exit', () => this.exited(c));
+      return c;
+    };
+    let child = spawn(this.o.appPath);
+    const fallback = this.o.fallbackAppPath;
+    if (fallback) this.tryingPrimary = child;
+    let pid = await this.findOurPid(child, 50);
+    if (pid === null && fallback && !cancelled()) {
+      console.warn(`PCSX2 at ${this.o.appPath} did not start; using ${fallback} (no buzzer lights)`);
+      if (this.child === child) {
+        this.child = null; // so its exit is not reported as the game ending
+        child.kill();
+      }
+      this.tryingPrimary = null;
+      child = spawn(fallback);
+      pid = await this.findOurPid(child, 50);
+    }
+    this.tryingPrimary = null;
     if (this.child !== child || cancelled()) throw new LaunchCancelled('Stopped before the game started');
     if (pid === null) {
       await this.stop();
@@ -195,6 +238,7 @@ export class Pcsx2Manager {
 
   async stop(): Promise<void> {
     this.cancelledId = this.launchId;
+    this.tryingPrimary = null;
     const child = this.child;
     if (!child) return;
     const exited = new Promise<boolean>(r => child.once('exit', () => r(true)));
@@ -230,6 +274,7 @@ export class Pcsx2Manager {
     this.pid = null;
     if (this.watchdog) clearInterval(this.watchdog);
     this.watchdog = null;
+    if (child === this.tryingPrimary) return; // launch() falls back to stock PCSX2
     for (const cb of this.exitListeners) cb();
   }
 }

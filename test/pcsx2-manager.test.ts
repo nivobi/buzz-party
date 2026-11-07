@@ -83,3 +83,43 @@ test('stop always finishes, even if PCSX2 ignores signals', async () => {
   expect(m.running).toBe(false);
   expect(exits).toEqual([1]);
 });
+
+describe('fallback to stock PCSX2', () => {
+  /** Our build exits at once (e.g. blocked by Gatekeeper); stock starts with pid 300. */
+  function twoBuilds() {
+    const spawned: string[] = [];
+    let stockUp = false;
+    const deps: ProcessDeps = {
+      spawnPcsx2: appPath => {
+        spawned.push(appPath);
+        const child = new FakeChild();
+        if (appPath === '/Ours.app') setImmediate(() => child.emit('exit'));
+        else stockUp = true;
+        return child;
+      },
+      listPids: async () => (stockUp ? [300] : []),
+      kill: () => {},
+      sleep: () => new Promise(r => setImmediate(r)),
+    };
+    return { deps, spawned };
+  }
+
+  test('falls back to stock when our build never starts', async () => {
+    const os = twoBuilds();
+    const m = new Pcsx2Manager({ appPath: '/Ours.app', fallbackAppPath: '/Stock.app', dataDir: tmpDir(), template: '[UI]\n', bridge: new FakeBridge(), deps: os.deps });
+    const exits = vi.fn();
+    m.onExit(exits);
+    await m.launch(game, launchOpts);
+    expect(os.spawned).toEqual(['/Ours.app', '/Stock.app']);
+    expect(m.running).toBe(true);
+    expect(exits).not.toHaveBeenCalled();
+  });
+
+  test('no fallback configured: an early exit still ends the launch', async () => {
+    const os = twoBuilds();
+    const m = new Pcsx2Manager({ appPath: '/Ours.app', dataDir: tmpDir(), template: '[UI]\n', bridge: new FakeBridge(), deps: os.deps });
+    await expect(m.launch(game, launchOpts)).rejects.toBeInstanceOf(Error);
+    expect(os.spawned).toEqual(['/Ours.app']);
+    expect(m.running).toBe(false);
+  });
+});
