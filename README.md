@@ -145,6 +145,34 @@ openbox &
 exec /opt/buzz-party/buzz-party
 ```
 
+## Buzzer lights (optional)
+
+On a real Buzz! controller the game lights up the big red button: blinking for
+"press to join", lit for whoever buzzed first or whose turn it is. Regular
+PCSX2 throws those lights away, so the phones can't show them. Games work fine
+without them.
+
+To get the lights on the phones, install our build of PCSX2 2.8.2 with one
+small change that passes the lights on:
+[PCSX2 for Buzz Party](https://github.com/nivobi/pcsx2/releases/tag/buzzparty-2.8.2-1).
+
+- **macOS:** unzip and move `PCSX2-BuzzParty.app` to Applications. It is not
+  notarized, so open it once and then allow it under System Settings → Privacy
+  & Security → "Open Anyway". It is an Intel build and runs through Rosetta on
+  Apple Silicon, like official PCSX2 2.8.2.
+- **Linux:** put `pcsx2-buzzparty-2.8.2.AppImage` in `~/Applications` (or
+  another folder from the list above) and make it executable.
+
+Buzz Party finds it on its own and prefers it over regular PCSX2. If it won't
+start (for example, macOS blocked it), Buzz Party uses regular PCSX2 instead,
+without lights. With only regular PCSX2 installed, nothing changes.
+
+When the game lights a player's buzzer, that player's red button glows and a
+soft red glow shows around the edge of their screen.
+
+For working on the phone page without PCSX2, `BUZZ_FAKE_LIGHTS=1 npm start`
+plays a made-up light show.
+
 ## Languages
 
 The UI is available in **English** and **Danish (Dansk)**. On first run the TV

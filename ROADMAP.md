@@ -21,6 +21,8 @@ an issue first so we can talk about it.
   (`web/i18n/`, `web/flags/`).
 - **Startup intro and sounds:** a short intro and small sounds when browsing
   and picking a game, all generated in code.
+- **Buzzer lights (optional):** with our patched PCSX2 build, phones glow when
+  the game lights that player's buzzer; regular PCSX2 still works without them.
 - **Linux, first pass:** a `/dev/uinput` key helper and bridge, finding and
   starting PCSX2 (AppImage or `pcsx2-qt`), `xdotool` window focus, and
   `npm run dist:linux`. The key bridge and the test suite are verified on
