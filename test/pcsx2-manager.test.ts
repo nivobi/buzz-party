@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { FakeBridge } from '../src/bridge/fake.js';
-import { Pcsx2Manager, type ProcessDeps } from '../src/core/pcsx2-manager.js';
+import { Pcsx2Manager, pcsx2PgrepArgs, type ProcessDeps } from '../src/core/pcsx2-manager.js';
 import { tmpDir } from './helpers/make-iso.js';
 
 class FakeChild extends EventEmitter {
@@ -122,4 +122,29 @@ describe('fallback to stock PCSX2', () => {
     expect(os.spawned).toEqual(['/Ours.app']);
     expect(m.running).toBe(false);
   });
+});
+
+test('our build hanging without a pid does not also start stock (no two emulators)', async () => {
+  const spawned: string[] = [];
+  const deps: ProcessDeps = {
+    spawnPcsx2: appPath => { spawned.push(appPath); return new FakeChild(); }, // never exits, never shows a pid
+    listPids: async () => [],
+    kill: () => {},
+    sleep: () => new Promise(r => setImmediate(r)),
+  };
+  const m = new Pcsx2Manager({ appPath: '/Ours.app', fallbackAppPath: '/Stock.app', dataDir: tmpDir(), template: '[UI]\n', bridge: new FakeBridge(), deps });
+  await expect(m.launch(game, launchOpts)).rejects.toThrow('PCSX2 did not start');
+  expect(spawned).toEqual(['/Ours.app']);
+});
+
+test('mac pgrep pattern finds any PCSX2 app bundle, not Buzz Party itself', () => {
+  const [flag, pattern] = pcsx2PgrepArgs('darwin');
+  expect(flag).toBe('-f');
+  const re = new RegExp(pattern);
+  expect(re.test('/Applications/PCSX2.app/Contents/MacOS/PCSX2 -batch -nogui')).toBe(true);
+  expect(re.test('/Applications/PCSX2-BuzzParty.app/Contents/MacOS/PCSX2 -batch')).toBe(true);
+  expect(re.test('/Applications/PCSX2 2.8.2.app/Contents/MacOS/PCSX2 -batch')).toBe(true);
+  expect(re.test('open -n -W -a /Applications/PCSX2.app --args -batch')).toBe(false);
+  expect(re.test('/Applications/Buzz Party.app/Contents/MacOS/Buzz Party')).toBe(false);
+  expect(pcsx2PgrepArgs('linux')).toEqual(['-x', 'pcsx2-qt']);
 });

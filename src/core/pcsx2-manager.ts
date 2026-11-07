@@ -90,6 +90,16 @@ export function pcsx2Command(platform: NodeJS.Platform, appPath: string, args: s
   return { cmd: appPath, args, env: { QT_QPA_PLATFORM: 'xcb' } };
 }
 
+/**
+ * pgrep args that find running PCSX2 processes. macOS: the PCSX2 executable
+ * inside any .app bundle (stock, ours, or a renamed one from PCSX2_PATH).
+ * Linux: the AppImage's real process is named pcsx2-qt; -x avoids matching
+ * this app's own command line.
+ */
+export function pcsx2PgrepArgs(platform: NodeJS.Platform): [string, string] {
+  return platform === 'darwin' ? ['-f', '\\.app/Contents/MacOS/PCSX2( |$)'] : ['-x', 'pcsx2-qt'];
+}
+
 /** The OS side of running PCSX2, swappable for tests. */
 export interface ProcessDeps {
   /** Starts PCSX2 with these args; the returned process exits when PCSX2 has quit. */
@@ -107,10 +117,7 @@ export const realProcessDeps: ProcessDeps = {
   },
   listPids: async () => {
     try {
-      // The Linux AppImage's real process is named pcsx2-qt; -x avoids matching
-      // this app's own command line.
-      const pgrepArgs = process.platform === 'darwin' ? ['-f', 'PCSX2(-BuzzParty)?\\.app/Contents/MacOS/PCSX2'] : ['-x', 'pcsx2-qt'];
-      const { stdout } = await promisify(execFile)('pgrep', pgrepArgs);
+      const { stdout } = await promisify(execFile)('pgrep', pcsx2PgrepArgs(process.platform));
       return stdout.split('\n').map(Number).filter(n => n > 0);
     } catch {
       return [];
@@ -195,12 +202,11 @@ export class Pcsx2Manager {
     const fallback = this.o.fallbackAppPath;
     if (fallback) this.tryingPrimary = child;
     let pid = await this.findOurPid(child, 50);
-    if (pid === null && fallback && !cancelled()) {
+    // Fall back only when our build exited (e.g. macOS refused to open it). If it
+    // is merely slow, starting stock too could leave two emulators running.
+    const primaryExited = this.child !== child;
+    if (pid === null && fallback && primaryExited && !cancelled()) {
       console.warn(`PCSX2 at ${this.o.appPath} did not start; using ${fallback} (no buzzer lights)`);
-      if (this.child === child) {
-        this.child = null; // so its exit is not reported as the game ending
-        child.kill();
-      }
       this.tryingPrimary = null;
       child = spawn(fallback);
       pid = await this.findOurPid(child, 50);
