@@ -16,7 +16,9 @@ import { scanGames, type Game } from './core/games.js';
 import { defaultRouteInterface, pickLanIp } from './core/lan-ip.js';
 import { isLang, loadDictionaries, translator, type Lang } from './core/i18n.js';
 import { ensureFolders, paths, pickBios } from './core/paths.js';
-import { findPcsx2, Pcsx2Manager } from './core/pcsx2-manager.js';
+import { startFakeLights, startLightListener } from './core/lights.js';
+import { findPcsx2Candidates, isBuzzPartyBuild, Pcsx2Manager } from './core/pcsx2-manager.js';
+import type { Lights } from './shared/protocol.js';
 import { readSettings, shouldPlayIntro, updateSettings } from './core/settings.js';
 import { SlotManager } from './core/slots.js';
 import { startServer } from './server/server.js';
@@ -51,9 +53,23 @@ app.whenReady().then(async () => {
     : new FakeBridge();
   const presser = new Presser(bridge, { minHoldMs: 50 });
   const slots = new SlotManager({ now: Date.now, releaseAfterMs: 90_000 });
-  const pcsx2Path = findPcsx2();
+  // Buzzer lights: our patched PCSX2 sends them to a local UDP port; stock PCSX2 sends nothing.
+  // BUZZ_FAKE_LIGHTS=1 plays a made-up light show instead, for working on the phones.
+  let onLights: (l: Lights) => void = () => {};
+  const fakeLights = process.env.BUZZ_FAKE_LIGHTS === '1';
+  const lightSource = fakeLights
+    ? (() => { const f = startFakeLights(l => onLights(l)); return { port: undefined, close: async () => f.stop() }; })()
+    : await startLightListener(l => onLights(l)).catch(err => {
+      console.warn('Buzzer lights off: could not listen for them:', err);
+      return null;
+    });
+
+  const candidates = findPcsx2Candidates();
+  const pcsx2Path = candidates[0] ?? null;
+  const fallbackAppPath = pcsx2Path && isBuzzPartyBuild(pcsx2Path) ? candidates.find(c => !isBuzzPartyBuild(c)) : undefined;
   const manager = pcsx2Path
-    ? new Pcsx2Manager({ appPath: pcsx2Path, dataDir: p.pcsx2Data, template: readFileSync(templatePath, 'utf8'), bridge })
+    ? new Pcsx2Manager({ appPath: pcsx2Path, fallbackAppPath, dataDir: p.pcsx2Data, template: readFileSync(templatePath, 'utf8'), bridge,
+      ledUdpPort: lightSource?.port })
     : null;
 
   const target = () => chooseDisplay(screen.getAllDisplays());
@@ -104,7 +120,7 @@ app.whenReady().then(async () => {
   }
 
   const controller = new Controller({ slots, presser, runner, games: [], problems: ['Starting…'], join: null, quit: () => app.quit(),
-    lang, sound, t, platform: process.platform,
+    lang, sound, t, platform: process.platform, lightsAnyMode: fakeLights,
     setLang: async next => {
       if (!isLang(next) || next === lang) return;
       lang = next;
@@ -118,6 +134,7 @@ app.whenReady().then(async () => {
       controller.update({ sound });
     },
   });
+  onLights = l => controller.setLights(l);
   const server = await startServer(controller, { webDir, port: PORT, maxPort: MAX_PORT, coversDir: p.covers });
   port = server.port;
   controller.update(await check(true));
@@ -184,6 +201,7 @@ app.whenReady().then(async () => {
       await new Promise(r => setTimeout(r, 100)); // let the key-up reach the helper
       await within(manager?.stop(), 8000);
       bridge.dispose();
+      await within(lightSource?.close(), 1000);
       await within(server.close(), 2000);
     })().finally(() => app.exit(0));
   });

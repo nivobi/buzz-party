@@ -38,13 +38,22 @@
       if (msg.t === 'state') {
         state = msg;
         queue = queue.then(render).catch(() => {});
+      } else if (msg.t === 'light') {
+        setLit(msg.on === true);
       }
     };
     ws.onclose = () => {
       releaseAll();
+      setLit(false);
       show('connecting');
       setTimeout(connect, Math.min(5000, 300 * 2 ** retry++));
     };
+  }
+
+  // The game's buzzer light for this player: the red button and the screen edge glow.
+  function setLit(on) {
+    $('buzzer').classList.toggle('lit', on);
+    document.querySelector('.btn.red').classList.toggle('lit', on);
   }
 
   function show(id) {
