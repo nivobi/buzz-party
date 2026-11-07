@@ -43,3 +43,9 @@ export type TvState = {
   lang: string | null;  /** UI sounds on or off. */
   sound: boolean;
 };
+
+/** The four buzzer lights as the game last set them, player 1 first. */
+export type Lights = readonly [boolean, boolean, boolean, boolean];
+
+/** Sent to a phone when its buzzer light changes (and with every state). */
+export type PhoneLight = { t: 'light'; on: boolean };
