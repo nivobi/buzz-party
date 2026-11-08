@@ -84,6 +84,11 @@ no desktop.
 - [ ] Document an automatic-login-and-start setup for a minimal install.
 - [x] "Turn off" from a phone shuts the machine down in kiosk mode (the app
       quits, and the session's start script powers off).
+- [x] WiFi setup on the TV for a console at a new house (with the separate
+      `buzz-netsetup` service): setup hotspot, network list on the phone, wrong
+      password shown, countdown before setup starts. Tested with an iPhone.
+- [ ] WiFi setup: still to test a hidden network, Ethernet plugged in during
+      setup, WiFi dropping mid-game, and moving to an unknown network.
 - [x] First-run language chooser: phone, mouse or keyboard (left/right and Enter).
 - [ ] Remote-control (HDMI-CEC) navigation for the chooser.
 - [x] Intro: plays on every launch by default; `"intro": "boot"` in
