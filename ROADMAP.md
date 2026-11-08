@@ -27,8 +27,10 @@ an issue first so we can talk about it.
 - **Linux, first pass:** a `/dev/uinput` key helper and bridge, finding and
   starting PCSX2 (AppImage or `pcsx2-qt`), `xdotool` window focus, and
   `npm run dist:linux`. Runs on a console PC (Arch, X11 + Openbox, GTX 960):
-  the packaged app, PCSX2 fullscreen, the buzzers and "Turn off" work. Sound
-  over HDMI is not tried yet (see "Linux and console mode").
+  the packaged app, PCSX2 fullscreen, the buzzers, "Turn off" and sound over
+  HDMI work.
+- **Sharper picture:** PCSX2 draws the games at the TV's resolution (1080p 3x,
+  1440p 4x, 4K 5x) with VSync on, so text is sharp and the picture doesn't tear.
 
 ## 1. Stabilise
 
@@ -37,8 +39,11 @@ Make what exists solid before adding more.
 - [ ] Test with 2–4 phones at once, including at least one iPhone and one Android.
 - [ ] Failure checks: a phone locks mid-game, Wi-Fi drops for a couple of
       minutes, "Invite a player", "Back to games", "Turn off".
-- [ ] Find out whether iPhones dim their screen mid-game over plain HTTP; if so,
-      add a keep-awake fallback.
+- [x] Find out whether iPhones dim their screen mid-game over plain HTTP: they do
+      (`navigator.wakeLock` needs HTTPS). Keep-awake fallback added: a tiny muted
+      video loops inline.
+- [ ] Confirm the keep-awake fallback on an iPhone and an Android phone.
+- [ ] Try it on a 4K TV: 5x upscaling at full speed in a busy Buzz! Junior mini-game.
 - [ ] Test on a TV over HDMI, with both an extended and a mirrored desktop.
 - [ ] Check how each game chooses its in-game language (disc menu or console
       setting) and, if needed, let the user set it.
@@ -50,6 +55,7 @@ Make what exists solid before adding more.
   - [x] Two fingers on the same phone button: it stays pressed until the last one lifts.
   - [x] Exclude virtual network adapters (Parallels, ZeroTier, WireGuard, ...) from the join address.
   - [x] Better titles for `.iso.gz`.
+  - [x] "Back to games": the TV and phones say "Closing the game…" at once while PCSX2 exits.
   - [ ] Don't list stray `.bin` files as games.
   - [x] Phone invite screen: hide the QR code when there is no join address.
   - [ ] A rare flaky server test (hello, then close).
@@ -70,7 +76,7 @@ no desktop.
       on NVIDIA, which runs these games fine.
 - [x] Find the PCSX2 AppImage's process: it is named after the file, not
       `pcsx2-qt`, so the app now matches any process name starting with `pcsx2`.
-- [ ] Sound over HDMI on a TV.
+- [x] Sound over HDMI on a TV (NVIDIA HDMI output set as the default sink).
 - [ ] Document an automatic-login-and-start setup for a minimal install.
 - [x] "Turn off" from a phone shuts the machine down in kiosk mode (the app
       quits, and the session's start script powers off).
