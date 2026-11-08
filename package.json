@@ -48,6 +48,7 @@
   "productName": "Buzz Party",
   "build": {
     "appId": "com.nivobi.buzzparty",
+    "publish": null,
     "productName": "Buzz Party",
     "directories": {
       "output": "dist-app"
