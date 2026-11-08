@@ -15,7 +15,8 @@ an issue first so we can talk about it.
   (tested) and the quiz games and regional editions (names and covers only, not
   tested yet).
 - **Game picker:** carousel with cover art (downloaded once per disc, your own
-  image always wins), the game's title, and the languages the disc supports.
+  image always wins) that slides from game to game, the game's title, the
+  languages the disc supports, and which game you are on ("3 / 9").
 - **Languages:** English and Danish UI, chosen on first run with flags and
   changeable from the phone menu. A new language is one JSON file plus a flag
   (`web/i18n/`, `web/flags/`).
@@ -25,9 +26,9 @@ an issue first so we can talk about it.
   the game lights that player's buzzer; regular PCSX2 still works without them.
 - **Linux, first pass:** a `/dev/uinput` key helper and bridge, finding and
   starting PCSX2 (AppImage or `pcsx2-qt`), `xdotool` window focus, and
-  `npm run dist:linux`. The key bridge and the test suite are verified on
-  Ubuntu 24.04 (x86-64); the parts that need a desktop and a GPU are not tried
-  yet (see "Linux and console mode").
+  `npm run dist:linux`. Runs on a console PC (Arch, X11 + Openbox, GTX 960):
+  the packaged app, PCSX2 fullscreen and the buzzers work. Sound over HDMI and
+  "Turn off" are not tried yet (see "Linux and console mode").
 
 ## 1. Stabilise
 
@@ -63,10 +64,13 @@ no desktop.
 
 - [x] Linux key bridge (`/dev/uinput`), verified on real Linux.
 - [x] Linux PCSX2 launch (AppImage or `pcsx2-qt`) and packaging.
-- [ ] Verify on a real Linux desktop with a GPU: PCSX2 starts and uses Vulkan,
-      sound over HDMI, the game window goes fullscreen on the TV, window focus
-      and placement, the packaged app starts (Chromium sandbox).
-- [ ] Check that the PCSX2 AppImage's process id matches the one the app tracks.
+- [x] Verify on a real Linux PC with a GPU (Arch, GTX 960): the packaged app
+      starts (Chromium sandbox), PCSX2 starts and goes fullscreen on the TV,
+      window focus works, buzzers work. PCSX2's automatic renderer picks OpenGL
+      on NVIDIA, which runs these games fine.
+- [x] Find the PCSX2 AppImage's process: it is named after the file, not
+      `pcsx2-qt`, so the app now matches any process name starting with `pcsx2`.
+- [ ] Sound over HDMI on a TV.
 - [ ] Document an automatic-login-and-start setup for a minimal install.
 - [ ] "Turn off" from a phone shuts the machine down in kiosk mode.
 - [x] First-run language chooser: phone, mouse or keyboard (left/right and Enter).
