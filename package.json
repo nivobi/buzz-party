@@ -26,14 +26,14 @@
   "license": "MIT",
   "type": "module",
   "devDependencies": {
-    "@types/node": "26.6.5",
+    "@types/node": "26.6.6",
     "@types/qrcode": "1.5.6",
     "@types/ws": "8.18.2",
-    "electron": "44.9.1",
-    "electron-builder": "26.15.3",
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0",
     "tsx": "4.23.15",
     "typescript": "7.0.2",
-    "vitest": "5.0.5"
+    "vitest": "5.1.0"
   },
   "dependencies": {
     "qrcode": "1.5.4",
