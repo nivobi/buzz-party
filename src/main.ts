@@ -79,7 +79,9 @@ app.whenReady().then(async () => {
     launch: async (game: Game) => {
       if (!manager || !biosFile) throw new Error('PCSX2 or BIOS missing');
       const t = target();
-      await manager.launch(game, { biosDir: p.bios, biosFile, tvBounds: t.external ? t.display.bounds : undefined });
+      // Real pixels: bounds are in display points (half the pixels on a Retina screen).
+      const tvHeightPx = Math.round(t.display.bounds.height * (t.display.scaleFactor || 1));
+      await manager.launch(game, { biosDir: p.bios, biosFile, tvBounds: t.external ? t.display.bounds : undefined, tvHeightPx });
     },
     stop: async () => { await manager?.stop(); },
     onExit: cb => manager?.onExit(cb),
