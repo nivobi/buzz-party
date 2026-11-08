@@ -93,11 +93,14 @@ export function pcsx2Command(platform: NodeJS.Platform, appPath: string, args: s
 /**
  * pgrep args that find running PCSX2 processes. macOS: the PCSX2 executable
  * inside any .app bundle (stock, ours, or a renamed one from PCSX2_PATH).
- * Linux: the AppImage's real process is named pcsx2-qt; -x avoids matching
+ * Linux: any process whose name starts with pcsx2. An AppImage's process is
+ * named after the file, cut to 15 characters (pcsx2-buzzparty, pcsx2-v2.8.2-li);
+ * a distro package's is pcsx2-qt. The AppImage's AppRun wrapper is not matched,
+ * which is right: window focus needs the real PCSX2 process. -x avoids matching
  * this app's own command line.
  */
 export function pcsx2PgrepArgs(platform: NodeJS.Platform): [string, string] {
-  return platform === 'darwin' ? ['-f', '\\.app/Contents/MacOS/PCSX2( |$)'] : ['-x', 'pcsx2-qt'];
+  return platform === 'darwin' ? ['-f', '\\.app/Contents/MacOS/PCSX2( |$)'] : ['-x', 'pcsx2.*'];
 }
 
 /** The OS side of running PCSX2, swappable for tests. */

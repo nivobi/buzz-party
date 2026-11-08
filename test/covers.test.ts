@@ -55,6 +55,25 @@ test('a missing cover, a non-image or no internet: no file, no throw, no retry s
   expect(['SLUS-00001', 'SLUS-00002', 'SLUS-00003'].some(s => existsSync(join(dir, `${s}.jpg`)))).toBe(false);
 });
 
+test('no internet yet: retries after a pause, not on every check', async () => {
+  const dir = tmpDir();
+  let t = 0;
+  let online = false;
+  const ok = fakeFetch(200, 'image/jpeg', Buffer.alloc(4096, 1));
+  let calls = 0;
+  const c = new CoverFetcher({ dir, now: () => t, retryMs: 30_000,
+    fetch: async url => { calls++; if (!online) throw new Error('offline'); return ok.fn(url); } });
+  expect(await c.ensure('SCES-54703')).toBe(false);
+  t = 5_000;
+  expect(await c.ensure('SCES-54703')).toBe(false);
+  expect(calls).toBe(1);
+  online = true;
+  t = 31_000;
+  expect(await c.ensure('SCES-54703')).toBe(true);
+  expect(calls).toBe(2);
+  expect(existsSync(join(dir, 'SCES-54703.jpg'))).toBe(true);
+});
+
 test('rejects serials that are not disc IDs (no path tricks)', async () => {
   const f = fakeFetch();
   expect(await new CoverFetcher({ dir: tmpDir(), fetch: f.fn }).ensure('../../etc')).toBe(false);
