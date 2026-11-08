@@ -1,7 +1,17 @@
 {
   "name": "buzz-party",
   "version": "1.0.0",
-  "description": "Phones as Buzz! buzzers for PS2 Buzz! Junior games in PCSX2",
+  "description": "Phones as Buzz! buzzers for the PS2 Buzz! games in PCSX2",
+  "keywords": ["buzz", "buzzer", "pcsx2", "ps2", "party-game", "quiz", "electron", "emulation"],
+  "homepage": "https://github.com/nivobi/buzz-party#readme",
+  "bugs": "https://github.com/nivobi/buzz-party/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nivobi/buzz-party.git"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p .",
@@ -12,7 +22,7 @@
     "dist": "npm run build:helper && npm run build && electron-builder --mac dir && node scripts/sign-mac.mjs",
     "dist:linux": "npm run build:helper:linux && npm run build && electron-builder --linux dir"
   },
-  "author": "",
+  "author": "Nicolai Birk",
   "license": "MIT",
   "type": "module",
   "devDependencies": {

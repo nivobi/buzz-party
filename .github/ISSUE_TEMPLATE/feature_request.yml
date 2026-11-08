@@ -1,0 +1,25 @@
+name: Idea or feature request
+description: Suggest something new or a change.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Check the [roadmap](https://github.com/nivobi/buzz-party/blob/master/ROADMAP.md) first; it may already be planned.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would it solve?
+      description: The situation at a game night where this would help.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: How it could work. Rough is fine.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Helping
+      options:
+        - label: I'd like to work on this myself.

@@ -12,8 +12,7 @@ an issue first so we can talk about it.
 - **PCSX2 underneath:** runs with its own settings, so nobody has to use an
   emulator menu.
 - **Buzz! titles** are recognised by disc ID in all regions: the Junior games
-  (tested) and the quiz games and regional editions (names and covers only, not
-  tested yet).
+  and the quiz games (both played end to end) and the regional editions.
 - **Game picker:** carousel with cover art (downloaded once per disc, your own
   image always wins) that slides from game to game, the game's title, the
   languages the disc supports, and which game you are on ("3 / 9").
@@ -24,7 +23,7 @@ an issue first so we can talk about it.
   and picking a game, all generated in code.
 - **Buzzer lights (optional):** with our patched PCSX2 build, phones glow when
   the game lights that player's buzzer; regular PCSX2 still works without them.
-- **Linux, first pass:** a `/dev/uinput` key helper and bridge, finding and
+- **Linux (X11):** a `/dev/uinput` key helper and bridge, finding and
   starting PCSX2 (AppImage or `pcsx2-qt`), `xdotool` window focus, and
   `npm run dist:linux`. Runs on a console PC (Arch, X11 + Openbox, GTX 960):
   the packaged app, PCSX2 fullscreen, the buzzers, "Turn off" and sound over
