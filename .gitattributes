@@ -1,0 +1,10 @@
+# Everything is LF in the repo and on every checkout (the tests read
+# templates and fixtures byte for byte).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.svg text eol=lf
+*.iso binary
+*.gz binary
+*.bin binary
