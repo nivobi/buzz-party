@@ -204,23 +204,35 @@
   function drawTitle(t) {
     const a = ease(clamp01((t - TITLE_AT) / 1.4));
     if (a <= 0) return;
-    const size = Math.round(Math.min(W * 0.085, H * 0.16));
+    // "BUZZ!" big, "PARTY BOX" smaller underneath, both glowing.
+    const big = Math.round(Math.min(W * 0.11, H * 0.2));
+    const small = Math.round(big * 0.36);
     const cx = W / 2;
-    const cy = H * 0.42;
+    // Centre the whole block (top of BUZZ! to bottom of PARTY BOX) on the screen.
+    // Capitals reach about 0.36 of the font size above and below the middle line.
+    const d = big * 0.55 + small * 0.7;               // between the two lines' middles
+    const mid = H / 2 + (big - small) * 0.18;         // middle of the two lines
     ctx.save();
+    ctx.globalAlpha = a;
+    glowText('BUZZ!', cx, mid - d / 2, big, 0.12);
+    glowText('PARTY BOX', cx, mid + d / 2, small, 0.45);
+    ctx.restore();
+  }
+
+  function glowText(text, x, y, size, spacing) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = `700 ${size}px system-ui, -apple-system, "Segoe UI", sans-serif`;
-    ctx.globalAlpha = a;
-    // Wide letter spacing, supported in current Chromium.
-    ctx.letterSpacing = `${Math.round(size * 0.16)}px`;
+    // Wide letter spacing, supported in current Chromium. Canvas adds the spacing
+    // after the last letter too, so shift by half of it to stay centred.
+    const gap = Math.round(size * spacing);
+    ctx.letterSpacing = `${gap}px`;
     ctx.shadowColor = 'rgba(90,170,255,0.95)';
     ctx.shadowBlur = size * 0.5;
     ctx.fillStyle = '#eaf4ff';
-    ctx.fillText('BUZZ PARTY', cx, cy);
+    ctx.fillText(text, x + gap / 2, y);
     ctx.shadowBlur = size * 0.15;
-    ctx.fillText('BUZZ PARTY', cx, cy);
-    ctx.restore();
+    ctx.fillText(text, x + gap / 2, y);
   }
 
   // Debug: ?introt=3.5 draws one still frame at that time and stays up.
