@@ -45,5 +45,14 @@
   "phone.status.launching": "Starter…",
   "phone.status.waitingGame": "{game} – tryk RØD",
   "phone.confirmBack": "Stop spillet og gå tilbage til spillene?",
-  "phone.confirmOff": "Sluk Buzz Party for alle?"
+  "phone.confirmOff": "Sluk Buzz Party for alle?",
+  "wifi.title": "Forbind boksen til jeres WiFi",
+  "wifi.scan": "Scan med telefonen og vælg jeres WiFi",
+  "wifi.connecting": "Forbinder til {name}…",
+  "wifi.connected": "Forbundet ✓",
+  "wifi.error.wrong_password": "Kunne ikke forbinde til {name}: forkert adgangskode?",
+  "wifi.error.not_found": "Kunne ikke finde {name}",
+  "wifi.error.timeout": "Kunne ikke forbinde til {name}",
+  "wifi.nosheet": "Ingen side? Åbn en hjemmeside",
+  "phone.status.wifi": "Sætter WiFi op – kig på TV'et"
 }

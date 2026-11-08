@@ -46,3 +46,8 @@ export async function fetchNetsetup(
     clearTimeout(timer);
   }
 }
+
+/** QR text that joins the open setup hotspot (the WIFI: format phones' cameras read). */
+export function wifiQrText(ssid: string): string {
+  return `WIFI:T:nopass;S:${ssid.replace(/([\\;,:"])/g, '\\$1')};;`;
+}

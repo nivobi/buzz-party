@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   const SLOT_COLORS = { 1: 'var(--blue)', 2: 'var(--orange)', 3: 'var(--green)', 4: '#c9a800' };
-  const STATUS_KEYS = { setup: 'phone.status.setup', picker: 'phone.status.picker', waiting: 'phone.status.waiting', launching: 'phone.status.launching' };
+  const STATUS_KEYS = { setup: 'phone.status.setup', picker: 'phone.status.picker', waiting: 'phone.status.waiting', launching: 'phone.status.launching', wifi: 'phone.status.wifi' };
 
   // A token survives reloads so the phone gets its player back.
   let token;

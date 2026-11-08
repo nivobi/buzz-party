@@ -15,7 +15,7 @@
   }
 
   function show(id) {
-    for (const s of ['language', 'setup', 'home', 'launching', 'game']) $(s).hidden = s !== id;
+    for (const s of ['language', 'setup', 'home', 'launching', 'game', 'wifi']) $(s).hidden = s !== id;
   }
 
   let lastSelected = null;
@@ -32,6 +32,14 @@
 
   let chooserDrawn = false;
   async function renderNow(s) {
+    // WiFi setup comes first, even before a language is chosen: no phone can
+    // reach the box until it is on a network.
+    if (s.mode === 'wifi' && s.wifi) {
+      const want = s.lang ?? 'en';
+      if (want !== i18n.lang) await i18n.setLang(want);
+      lastMode = s.mode;
+      return renderWifi(s.wifi);
+    }
     if (s.lang === null) {
       if (!chooserDrawn) {
         chooserDrawn = true;
@@ -94,6 +102,25 @@
       return el;
     }));
     show('home');
+  }
+
+  function renderWifi(w) {
+    const name = w.ssid ?? '';
+    const setup = w.mode === 'hotspot';
+    $('wifi-title').textContent =
+      w.mode === 'joining' ? i18n.t('wifi.connecting', { name }) :
+      w.mode === 'connected' ? i18n.t('wifi.connected') :
+      i18n.t('wifi.title');
+    $('wifi-error').hidden = !(setup && w.error);
+    $('wifi-error').textContent = setup && w.error ? i18n.t(`wifi.error.${w.error}`, { name }) : '';
+    $('wifi-setup').hidden = !setup;
+    if (setup) {
+      if (w.qr) $('wifi-qr').src = w.qr;
+      $('wifi-scan').textContent = i18n.t('wifi.scan');
+      $('wifi-ssid').textContent = w.hotspotSsid;
+      $('wifi-nosheet').textContent = i18n.t('wifi.nosheet');
+    }
+    show('wifi');
   }
 
   // One element per game, kept between renders, so a move can slide each cover

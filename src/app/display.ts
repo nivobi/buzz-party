@@ -21,5 +21,5 @@ export function chooseDisplay<D extends DisplayInfo>(displays: D[]): { display: 
  * Not during a game: that would rescan discs while PCSX2 reads one.
  */
 export function shouldRecheck(mode: Mode): boolean {
-  return mode === 'setup' || mode === 'picker' || mode === 'waiting';
+  return mode === 'setup' || mode === 'picker' || mode === 'waiting' || mode === 'wifi';
 }

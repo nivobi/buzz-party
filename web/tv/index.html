@@ -43,6 +43,21 @@
 
   <main id="game" class="screen" hidden></main>
 
+  <main id="wifi" class="screen center" hidden>
+    <div class="wifi-box">
+      <h1 id="wifi-title"></h1>
+      <p id="wifi-error" class="error wifi-error" hidden></p>
+      <div id="wifi-setup" class="wifi-setup">
+        <img id="wifi-qr" alt="QR">
+        <div>
+          <p class="join" id="wifi-scan"></p>
+          <p class="url" id="wifi-ssid"></p>
+          <p class="hint" id="wifi-nosheet"></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
   <script src="/i18n.js"></script>
   <script src="sfx.js"></script>
   <script src="intro.js"></script>
