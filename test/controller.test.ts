@@ -361,3 +361,49 @@ describe('buzzer lights', () => {
     expect(s.c.lightOf('p')).toBe(true);
   });
 });
+
+const hotspot = { mode: 'hotspot' as const, ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup', qr: 'data:wifi' };
+
+test('wifi view puts the TV in wifi mode', () => {
+  const s = setup();
+  expect(s.c.tvState().wifi).toBeNull();
+  s.c.update({ wifi: hotspot });
+  expect(s.c.tvState().mode).toBe('wifi');
+  expect(s.c.tvState().wifi).toEqual(hotspot);
+  s.c.update({ wifi: null });
+  expect(s.c.tvState().mode).toBe('picker');
+});
+
+test('wifi comes before setup problems', () => {
+  const s = setup([game('A')], ['No PCSX2']);
+  expect(s.c.tvState().mode).toBe('setup');
+  s.c.update({ wifi: hotspot });
+  expect(s.c.tvState().mode).toBe('wifi');
+});
+
+test('wifi from the start', () => {
+  const s = setup(undefined, [], { wifi: hotspot });
+  expect(s.c.tvState().mode).toBe('wifi');
+});
+
+test('wifi never interrupts a game', async () => {
+  const s = setup();
+  s.join('p', 1);
+  s.press('p', 'red');
+  await s.flush();
+  expect(s.c.tvState().mode).toBe('game');
+  s.c.update({ wifi: hotspot });
+  expect(s.c.tvState().mode).toBe('game');
+  s.runner.crash();
+  expect(s.c.tvState().mode).toBe('wifi');
+});
+
+test('buttons do not launch a game from the wifi screen', async () => {
+  const s = setup();
+  s.join('p', 1);
+  s.c.update({ wifi: hotspot });
+  s.press('p', 'red');
+  await s.flush();
+  expect(s.runner.launched).toEqual([]);
+  expect(s.c.tvState().mode).toBe('wifi');
+});

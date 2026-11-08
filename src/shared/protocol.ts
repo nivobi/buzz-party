@@ -1,5 +1,6 @@
 import type { Button, Slot } from './keymap.js';
 import type { Game } from '../core/games.js';
+import type { WifiView } from '../core/netsetup.js';
 
 export type PhoneMsg =
   | { t: 'hello'; token: string }
@@ -9,7 +10,7 @@ export type PhoneMsg =
   | { t: 'lang'; lang: string }
   | { t: 'sound'; on: boolean };
 
-export type Mode = 'setup' | 'picker' | 'waiting' | 'launching' | 'game';
+export type Mode = 'setup' | 'picker' | 'waiting' | 'launching' | 'game' | 'wifi';
 
 export type SlotView = { slot: Slot; taken: boolean; connected: boolean };
 
@@ -42,6 +43,8 @@ export type TvState = {
   /** UI language; null until someone has picked one. */
   lang: string | null;  /** UI sounds on or off. */
   sound: boolean;
+  /** The box's WiFi setup, while it runs (Linux console only); null otherwise. */
+  wifi: WifiView | null;
 };
 
 /** The four buzzer lights as the game last set them, player 1 first. */

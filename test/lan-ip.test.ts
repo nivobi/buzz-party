@@ -41,3 +41,8 @@ test('skips Parallels, ZeroTier, WireGuard and Apple peer-to-peer adapters', () 
     en0: [v4('192.168.1.9')],
   })).toBe('192.168.1.9');
 });
+
+test('buzz0 is never the join address', () => {
+  expect(pickLanIp({ buzz0: [v4('10.42.0.1')], wlp4s0: [v4('192.168.0.92')] }, 'buzz0')).toBe('192.168.0.92');
+  expect(pickLanIp({ buzz0: [v4('10.42.0.1')] })).toBeNull();
+});

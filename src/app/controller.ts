@@ -1,5 +1,6 @@
 import type { Presser } from '../bridge/presser.js';
 import type { Game } from '../core/games.js';
+import type { WifiView } from '../core/netsetup.js';
 import type { SlotManager } from '../core/slots.js';
 import type { Button } from '../shared/keymap.js';
 import type { Lights, Mode, PhoneMsg, PhoneState, TvState } from '../shared/protocol.js';
@@ -39,6 +40,8 @@ export interface ControllerDeps {
   t?: (key: string, params?: Record<string, string | number>) => string;
   /** Accept buzzer lights outside a game too (the BUZZ_FAKE_LIGHTS light show). */
   lightsAnyMode?: boolean;
+  /** The box's WiFi setup while it runs; shown instead of the home screen, never over a game. */
+  wifi?: WifiView | null;
 }
 
 /** The whole evening as a state machine: setup → picker/waiting → game → back. */
@@ -82,7 +85,7 @@ export class Controller {
     for (const cb of this.lightListeners) cb();
   }
 
-  update(u: Partial<Pick<ControllerDeps, 'games' | 'problems' | 'join' | 'lang' | 'sound'>>): void {
+  update(u: Partial<Pick<ControllerDeps, 'games' | 'problems' | 'join' | 'lang' | 'sound' | 'wifi'>>): void {
     Object.assign(this.d, u);
     this.selected = Math.min(this.selected, Math.max(0, this.d.games.length - 1));
     if (this.mode !== 'game' && this.mode !== 'launching') this.mode = this.homeMode();
@@ -137,6 +140,7 @@ export class Controller {
       platform: this.d.platform ?? process.platform,
       lang: this.lang(),
       sound: this.d.sound ?? true,
+      wifi: this.d.wifi ?? null,
     };
   }
 
@@ -164,6 +168,7 @@ export class Controller {
   }
 
   private homeMode(): Mode {
+    if (this.d.wifi) return 'wifi';
     if (this.d.problems.length > 0) return 'setup';
     return this.d.games.length === 1 ? 'waiting' : 'picker';
   }
