@@ -242,12 +242,15 @@ export class Pcsx2Manager {
   }
 
   focus(): void {
-    if (this.pid !== null) this.o.bridge.focusPid(this.pid);
+    // Not once stop() has begun: the closing screen comes up over PCSX2 while it exits.
+    if (this.pid !== null && this.cancelledId !== this.launchId) this.o.bridge.focusPid(this.pid);
   }
 
   async stop(): Promise<void> {
     this.cancelledId = this.launchId;
     this.tryingPrimary = null;
+    if (this.watchdog) clearInterval(this.watchdog);
+    this.watchdog = null;
     const child = this.child;
     if (!child) return;
     const exited = new Promise<boolean>(r => child.once('exit', () => r(true)));

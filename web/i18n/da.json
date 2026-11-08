@@ -8,6 +8,7 @@
   "home.hintOne": "Find telefonerne frem, og tryk så på <b class=\"c-red\">RØD</b> for at starte",
   "join.scan": "Scan for at deltage",
   "launching": "Starter {title}…",
+  "stopping": "Lukker {title}…",
   "player": "Spiller {n}",
   "player.free": "{n} – ledig",
   "problem.pcsx2": "PCSX2 er ikke installeret. Hent det fra pcsx2.net (eller `brew install --cask pcsx2`).",
@@ -43,6 +44,7 @@
   "phone.status.picker": "Vælg et spil",
   "phone.status.waiting": "Tryk RØD for at starte",
   "phone.status.launching": "Starter…",
+  "phone.status.stopping": "Lukker spillet…",
   "phone.status.waitingGame": "{game} – tryk RØD",
   "phone.confirmBack": "Stop spillet og gå tilbage til spillene?",
   "phone.confirmOff": "Sluk Buzz Party for alle?"

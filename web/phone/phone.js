@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   const SLOT_COLORS = { 1: 'var(--blue)', 2: 'var(--orange)', 3: 'var(--green)', 4: '#c9a800' };
-  const STATUS_KEYS = { setup: 'phone.status.setup', picker: 'phone.status.picker', waiting: 'phone.status.waiting', launching: 'phone.status.launching' };
+  const STATUS_KEYS = { setup: 'phone.status.setup', picker: 'phone.status.picker', waiting: 'phone.status.waiting', launching: 'phone.status.launching', stopping: 'phone.status.stopping' };
 
   // A token survives reloads so the phone gets its player back.
   let token;
@@ -88,8 +88,9 @@
     if (state.qr) $('invite-qr').src = state.qr;
     $('invite-url').textContent = state.joinUrl;
     const inGame = state.mode === 'game' || state.mode === 'launching';
+    const closing = state.mode === 'stopping';
     document.querySelector('[data-act="back"]').hidden = !inGame;
-    document.querySelector('[data-act="off"]').hidden = inGame;
+    document.querySelector('[data-act="off"]').hidden = inGame || closing;
   }
 
   function renderSlots() {

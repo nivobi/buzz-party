@@ -9,7 +9,7 @@ export type PhoneMsg =
   | { t: 'lang'; lang: string }
   | { t: 'sound'; on: boolean };
 
-export type Mode = 'setup' | 'picker' | 'waiting' | 'launching' | 'game';
+export type Mode = 'setup' | 'picker' | 'waiting' | 'launching' | 'game' | 'stopping';
 
 export type SlotView = { slot: Slot; taken: boolean; connected: boolean };
 
