@@ -103,7 +103,8 @@ no desktop.
 - [x] The other Buzz! titles are in the title list (94 discs from PCSX2's game
       database: the quiz series, Brain of the World/UK and more, with regional
       editions), so they get proper names and cover art.
-- [ ] Test at least one of the quiz games end to end.
+- [x] Test at least one of the quiz games end to end (played through on the
+      console with one player).
 - [ ] Optional per-game settings if any title needs PCSX2 tweaks.
 
 ## 5. PS3 Buzz! games (RPCS3)
