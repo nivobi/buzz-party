@@ -173,13 +173,20 @@ app.whenReady().then(async () => {
   controller.onChange(async () => {
     const mode = controller.tvState().mode;
     if (mode === lastMode) return;
-    const wasGame = lastMode === 'game' || lastMode === 'launching';
+    const busy = (m: string) => m === 'game' || m === 'launching' || m === 'stopping';
+    const wasGame = busy(lastMode);
     lastMode = mode;
-    if (wasGame && mode !== 'game' && mode !== 'launching') {
-      // Back from a game: picker in front again, and pick up new games.
+    const toFront = () => {
       win.show();
       win.focus();
       app.focus({ steal: true });
+    };
+    if (mode === 'stopping') {
+      // "Back to games": the closing screen goes in front while PCSX2 exits.
+      toFront();
+    } else if (wasGame && !busy(mode)) {
+      // Back from a game: picker in front again, and pick up new games.
+      toFront();
       controller.update(await check(false));
     }
   });

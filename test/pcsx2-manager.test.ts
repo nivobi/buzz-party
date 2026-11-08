@@ -84,6 +84,27 @@ test('stop always finishes, even if PCSX2 ignores signals', async () => {
   expect(exits).toEqual([1]);
 });
 
+test('once stopping, PCSX2 is no longer pulled to the front', async () => {
+  // The closing screen must be able to come up over PCSX2 while it exits.
+  const bridge = new FakeBridge();
+  const os = fakeOs({ pids: [], ourPid: 200, appearsAfter: 1, obeysSignals: false });
+  let release!: () => void;
+  const held = new Promise<void>(r => { release = r; });
+  let holding = false;
+  const sleep = os.deps.sleep;
+  os.deps.sleep = (ms: number) => (holding ? held : sleep(ms));
+  const m = new Pcsx2Manager({ appPath: '/A.app', dataDir: tmpDir(), template: '[UI]\n', bridge, deps: os.deps });
+  await m.launch(game, launchOpts);
+  holding = true;
+  const stopping = m.stop();
+  bridge.events = [];
+  m.focus();
+  expect(bridge.events).toEqual([]);
+  holding = false;
+  release();
+  await stopping;
+});
+
 describe('fallback to stock PCSX2', () => {
   /** Our build exits at once (e.g. blocked by Gatekeeper); stock starts with pid 300. */
   function twoBuilds() {

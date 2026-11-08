@@ -54,8 +54,9 @@
     }
     if (s.mode === 'launching' && lastMode !== 'launching') window.sfx?.select();
     lastMode = s.mode;
-    if (s.mode === 'launching') {
-      $('launching-text').textContent = i18n.t('launching', { title: s.gameTitle ?? '' });
+    if (s.mode === 'launching' || s.mode === 'stopping') {
+      // Same quiet screen for "starting" and "closing" (PCSX2 can take seconds to exit).
+      $('launching-text').textContent = i18n.t(s.mode, { title: s.gameTitle ?? '' });
       return show('launching');
     }
     if (s.mode === 'game') return show('game');

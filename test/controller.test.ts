@@ -17,7 +17,13 @@ class FakeRunner implements GameRunner {
     if (this.cancel) throw Object.assign(new Error('Stopped before the game started'), { name: 'LaunchCancelled' });
     this.launched.push(g);
   }
-  async stop() { this.stops++; this.exitCb?.(); }
+  /** Set to hold stop() until resolved, like a PCSX2 that takes its time to exit. */
+  stopGate: Promise<void> | null = null;
+  async stop() {
+    this.stops++;
+    if (this.stopGate) await this.stopGate;
+    this.exitCb?.();
+  }
   onExit(cb: () => void) { this.exitCb = cb; }
   crash() { this.exitCb?.(); }
 }
@@ -123,6 +129,62 @@ test('back to games stops PCSX2 and releases everything', async () => {
   expect(s.bridge.events).toContain('up:W');
   expect(s.c.tvState().mode).toBe('picker');
   expect(s.c.tvState().gameTitle).toBeNull();
+});
+
+describe('while PCSX2 is closing after "back to games"', () => {
+  // PCSX2 can take seconds to exit (SIGTERM, then up to 5 s); phones and TV
+  // must show that at once instead of sitting on the game (box, 2026-11-08).
+  async function closing() {
+    const s = await inGame();
+    let done!: () => void;
+    s.runner.stopGate = new Promise<void>(r => { done = r; });
+    s.c.phone('p', { t: 'menu', action: 'back' });
+    return { ...s, done: async () => { done(); await s.flush(); } };
+  }
+
+  test('mode is "stopping" at once, with the game still named', async () => {
+    const s = await closing();
+    expect(s.c.tvState().mode).toBe('stopping');
+    expect(s.c.tvState().gameTitle).toBe('A');
+    expect(s.c.phoneState('p')).toMatchObject({ mode: 'stopping', selectedTitle: 'A' });
+    await s.done();
+    expect(s.c.tvState().mode).toBe('picker');
+    expect(s.c.tvState().gameTitle).toBeNull();
+  });
+
+  test('buttons do nothing: no key presses, no picker moves, no launch', async () => {
+    const s = await closing();
+    s.press('p', 'red');
+    s.press('q', 'orange');
+    expect(s.bridge.events.filter(e => e.startsWith('down:'))).toEqual([]);
+    expect(s.runner.launched).toHaveLength(1);
+    await s.done();
+    expect(s.c.tvState().selected).toBe(0);
+  });
+
+  test('a second "back" does not stop twice, and "turn off" is ignored', async () => {
+    const s = await closing();
+    s.c.phone('q', { t: 'menu', action: 'back' });
+    s.c.phone('q', { t: 'menu', action: 'off' });
+    await s.done();
+    expect(s.runner.stops).toBe(1);
+    expect(s.quit).not.toHaveBeenCalled();
+  });
+
+  test('a rescan meanwhile does not end the closing screen', async () => {
+    const s = await closing();
+    s.c.update({ games: [game('A'), game('B')] });
+    expect(s.c.tvState().mode).toBe('stopping');
+    await s.done();
+    expect(s.c.tvState().mode).toBe('picker');
+  });
+
+  test('the game lights are off while closing', async () => {
+    const s = await closing();
+    s.c.setLights([true, false, false, false]);
+    expect(s.c.lightOf('p')).toBe(false);
+    await s.done();
+  });
 });
 
 test('PCSX2 exiting on its own returns to the picker', async () => {
