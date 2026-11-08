@@ -142,6 +142,8 @@ export interface LaunchOptions {
   biosFile: string;
   /** Set when the TV is a separate (extended) display. */
   tvBounds?: Rect;
+  /** The TV's height in real pixels (for the upscaling). */
+  tvHeightPx?: number;
 }
 
 type Child = ReturnType<ProcessDeps['spawnPcsx2']>;
@@ -183,6 +185,7 @@ export class Pcsx2Manager {
       biosDir: l.biosDir,
       biosFile: l.biosFile,
       startFullscreen: !l.tvBounds,
+      tvHeightPx: l.tvHeightPx,
       ledUdpPort: this.o.ledUdpPort,
     });
     const iniPath = pcsx2IniPath(this.o.dataDir);

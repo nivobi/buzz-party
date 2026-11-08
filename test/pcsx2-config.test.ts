@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { buildPcsx2Ini } from '../src/core/pcsx2-config.js';
+import { buildPcsx2Ini, upscaleFor } from '../src/core/pcsx2-config.js';
 import { BUTTONS, keyFor, pcsx2BindingName, SLOTS } from '../src/shared/keymap.js';
 
 const template = readFileSync('resources/pcsx2/PCSX2.template.ini', 'utf8');
@@ -56,10 +56,38 @@ test('no buzzer key is bound anywhere but USB1, and Pad1 has no keyboard binds',
   }
 });
 
-test('other sections are untouched', () => {
+test('other sections are untouched (GS: only upscaling and VSync change)', () => {
   const ini = buildPcsx2Ini(template, opts);
-  expect(section(ini, 'EmuCore/GS')).toEqual(section(template, 'EmuCore/GS'));
+  const gs = (s: string) => section(s, 'EmuCore/GS').filter(l => !/^(upscale_multiplier|VsyncEnable) =/.test(l));
+  expect(gs(ini)).toEqual(gs(template));
   expect(section(ini, 'Hotkeys')).toEqual(section(template, 'Hotkeys'));
+});
+
+describe('picture: upscaled to the TV, no tearing', () => {
+  // PS2 games draw about 448 lines; drawing them at the TV's own resolution is
+  // what makes text sharp. Tried on the box 2026-11-08: 3x on a 1080p TV used
+  // ~20 % of the GTX 960, so 4K (5x) should fit; 5x is the cap.
+  test('the multiplier follows the TV height', () => {
+    expect(upscaleFor(1080)).toBe(3);
+    expect(upscaleFor(1440)).toBe(4);
+    expect(upscaleFor(2160)).toBe(5);
+    expect(upscaleFor(720)).toBe(2);
+    expect(upscaleFor(448)).toBe(1);
+    expect(upscaleFor(4320)).toBe(5);
+  });
+
+  test('unknown TV size gives 3x (a 1080p TV)', () => {
+    for (const h of [undefined, 0, -1, Number.NaN]) expect(upscaleFor(h)).toBe(3);
+  });
+
+  test('the ini carries it, and VSync is on', () => {
+    // No compositor on the box, so without VSync the picture tears (seen in Junior).
+    const ini = buildPcsx2Ini(template, { ...opts, tvHeightPx: 2160 });
+    expect(value(ini, 'EmuCore/GS', 'upscale_multiplier')).toBe('5');
+    expect(value(ini, 'EmuCore/GS', 'VsyncEnable')).toBe('true');
+    expect(section(ini, 'EmuCore/GS').filter(l => l.startsWith('upscale_multiplier ='))).toHaveLength(1);
+    expect(value(buildPcsx2Ini(template, opts), 'EmuCore/GS', 'upscale_multiplier')).toBe('3');
+  });
 });
 
 test('USB1 carries the light port when given', () => {

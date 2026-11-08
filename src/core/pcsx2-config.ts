@@ -42,10 +42,23 @@ function set(sections: Section[], name: string, key: string, value: string): voi
   s.lines.splice(at, 0, line);
 }
 
+/** Lines a PS2 game draws, about; the multiplier brings that up to the TV's height. */
+const PS2_LINES = 448;
+/** 4K. 3x on a 1080p TV used ~20 % of the console's GTX 960 (2026-11-08). */
+const MAX_UPSCALE = 5;
+
+/** PCSX2's upscale multiplier for a TV this many pixels high (1080p 3x, 1440p 4x, 4K 5x). */
+export function upscaleFor(tvHeightPx: number | undefined): number {
+  if (!tvHeightPx || !(tvHeightPx > 0)) return 3;
+  return Math.min(MAX_UPSCALE, Math.max(1, Math.ceil(tvHeightPx / PS2_LINES)));
+}
+
 /** PCSX2.ini for Buzz Party, patched from an ini PCSX2 generated itself. */
 export function buildPcsx2Ini(
   template: string,
-  o: { biosDir: string; biosFile: string; startFullscreen: boolean; ledUdpPort?: number },
+  o: { biosDir: string; biosFile: string; startFullscreen: boolean; ledUdpPort?: number;
+    /** The TV's height in real pixels; picks the upscaling. */
+    tvHeightPx?: number },
 ): string {
   const sections = parse(template);
 
@@ -57,6 +70,12 @@ export function buildPcsx2Ini(
   set(sections, 'Folders', 'Bios', o.biosDir);
   set(sections, 'Filenames', 'BIOS', o.biosFile);
   set(sections, 'AutoUpdater', 'CheckAtStartup', 'false');
+
+  // Sharp text: draw the game at the TV's resolution. VSync: nothing else on the
+  // console stops tearing (no compositor), and one frame of delay is the same for
+  // every player.
+  set(sections, 'EmuCore/GS', 'upscale_multiplier', String(upscaleFor(o.tvHeightPx)));
+  set(sections, 'EmuCore/GS', 'VsyncEnable', 'true');
 
   // The default PS2 pad's keyboard binds clash with the buzzer keys.
   const pad1 = sectionOf(sections, 'Pad1');
