@@ -10,8 +10,9 @@ buzzer (red button plus blue, orange, green and yellow). Underneath it runs the
 [PCSX2](https://pcsx2.net) emulator with its own settings, so nobody has to
 touch an emulator menu.
 
-> Status: works on macOS. **Linux support is experimental** (see
-> [Linux](#linux-experimental)). Windows is planned, see the [roadmap](ROADMAP.md).
+> Status: works on macOS, and on Linux with X11 (tested on a console PC: Arch,
+> Openbox, NVIDIA GTX 960; Wayland is not supported, see [Linux](#linux)).
+> Windows is planned, see the [roadmap](ROADMAP.md).
 
 ## Screenshots
 
@@ -43,7 +44,7 @@ picker shows the cover art, which is downloaded for you.
 
 ## What you need
 
-- A Mac, or a Linux PC (experimental). Windows is not supported yet.
+- A Mac, or a Linux PC with X11 (not Wayland). Windows is not supported yet.
 - [PCSX2](https://pcsx2.net) installed (`brew install --cask pcsx2`).
 - A PS2 BIOS dumped from a console you own (a `.bin` file). PCSX2 has a
   [BIOS dumping guide](https://pcsx2.net/docs/setup/bios/).
@@ -142,14 +143,18 @@ needs internet the first time a new game shows up.
 Controls on a phone while picking a game: **blue** goes left, **orange** goes
 right, **red** plays. To quit Buzz Party, press **Cmd+Q** on the computer.
 
-## Linux (experimental)
+## Linux
 
-The Linux support is meant for a small "console" PC that boots straight into
-the app. It runs on one such PC: Arch Linux, X11 with Openbox, an NVIDIA GTX 960,
-and the PCSX2 AppImages. The packaged app starts, PCSX2 opens fullscreen on the
-TV with the buzzers working, "Turn off" from a phone powers the PC off, and the
-test suite passes (also on Ubuntu 24.04), and sound plays over HDMI on the TV.
-Expect rough edges on other setups and please report what you find.
+Linux works with X11, and is meant for a small "console" PC that boots straight
+into the app. It is used on one such PC: Arch Linux, X11 with Openbox, an NVIDIA
+GTX 960 and the PCSX2 AppImages. There the packaged app starts, PCSX2 runs
+fullscreen on the TV with the buzzers working, sound plays over HDMI, and
+"Turn off" from a phone powers the PC off. The test suite also passes on
+Ubuntu 24.04.
+
+Not tried yet: AMD or Intel graphics, and other distributions. Wayland is not
+supported (window focus and placement need X11). If you run it on another setup,
+please report what you find.
 
 What you need:
 
