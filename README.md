@@ -37,8 +37,9 @@ picker shows the cover art, which is downloaded for you.
 2. Phones open the page behind the QR code and claim a player (1 to 4).
 3. Button presses from the phones are sent over a WebSocket and turned into
    key presses for PCSX2, so the buzzers work like the real controllers.
-4. The red buzzer starts the selected game. "Back to games" in the phone menu
-   returns to the picker.
+4. The red buzzer starts the selected game. PCSX2 draws it at the TV's
+   resolution (3x on a 1080p TV, up to 5x on 4K) with VSync on, so text stays
+   sharp. "Back to games" in the phone menu returns to the picker.
 
 ## What you need
 
@@ -147,8 +148,8 @@ The Linux support is meant for a small "console" PC that boots straight into
 the app. It runs on one such PC: Arch Linux, X11 with Openbox, an NVIDIA GTX 960,
 and the PCSX2 AppImages. The packaged app starts, PCSX2 opens fullscreen on the
 TV with the buzzers working, "Turn off" from a phone powers the PC off, and the
-test suite passes (also on Ubuntu 24.04). Not tried yet: sound over HDMI. Expect
-rough edges on other setups and please report what you find.
+test suite passes (also on Ubuntu 24.04), and sound plays over HDMI on the TV.
+Expect rough edges on other setups and please report what you find.
 
 What you need:
 
