@@ -255,11 +255,13 @@ one and types the password. The TV shows "Connecting…", then "Connected ✓"
 A game in progress is never interrupted.
 
 The app only reads the service's state from `http://127.0.0.1:8431/status`.
-The service itself (`buzz-netsetup`) is **not published**: it runs the hotspot
-on the console's Broadcom card through a patched `wl` driver, so it only works
-on that hardware. The app part is here so a similar service can plug in: it
-only needs to answer that URL with the same JSON. Without a service the app
-behaves exactly as before.
+The service itself (`buzz-netsetup`) is not published: it is specific to the
+console's hardware. Its hotspot part is, as
+[bcm4360-softap](https://github.com/nivobi/bcm4360-softap): an open hotspot on
+a Broadcom BCM4360 with the closed `wl` driver, with the driver patch and the
+findings. The app part is here so a similar service can plug in: it only needs
+to answer that URL with the same JSON. Without a service the app behaves
+exactly as before.
 
 ## Buzzer lights (optional)
 
