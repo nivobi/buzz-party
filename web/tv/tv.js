@@ -20,6 +20,7 @@
 
   let lastSelected = null;
   let lastKey = '';
+  let lastIds = '';
   let lastMode = null;
 
   // Messages are handled one at a time so a language file finishes loading
@@ -63,32 +64,24 @@
     const sel = Math.min(s.selected, n - 1);
     $('home-hint').innerHTML = i18n.t(n > 1 ? 'home.hintMany' : 'home.hintOne');
 
-    // Rebuild the carousel only when something visible changed.
+    // Move the covers only when something visible changed.
     const key = JSON.stringify([sel, s.games.map(g => [g.id, g.cover])]);
     if (key !== lastKey) {
       lastKey = key;
-      // Always three places so the picked game sits dead centre; with two
-      // games the left place stays empty.
-      const items = [-1, 0, 1].map(off => {
-        if (n === 1 && off !== 0) return spacer();
-        if (n === 2 && off === -1) return spacer();
-        const i = (sel + off + n) % n;
-        return cover(s.games[i], i, off === 0);
-      });
-      $('carousel').replaceChildren(...items);
-      if (lastSelected !== null && lastSelected !== sel && n > 1) {
-        const forward = (sel - lastSelected + n) % n === 1;
-        const c = $('carousel');
-        c.classList.remove('slide-next', 'slide-prev');
-        void c.offsetWidth;
-        c.classList.add(forward ? 'slide-next' : 'slide-prev');
-        window.sfx?.move(forward);
-      }
+      const listChanged = JSON.stringify(s.games.map(g => g.id)) !== lastIds;
+      lastIds = JSON.stringify(s.games.map(g => g.id));
+      const moved = lastSelected !== null && lastSelected !== sel && n > 1;
+      // A rescan that adds or removes games snaps into place; only a move by
+      // the players slides, so the screen never seems to move on its own.
+      placeCovers(s.games, sel, moved && !listChanged);
+      if (moved) window.sfx?.move((sel - lastSelected + n) % n === 1);
       lastSelected = sel;
     }
     const g = s.games[sel];
     $('game-title').textContent = g?.title ?? '';
     $('game-langs').textContent = g?.languages?.length ? g.languages.join(' · ') : '';
+    $('game-count').hidden = n < 2;
+    $('game-count').textContent = n < 2 ? '' : `${sel + 1} / ${n}`;
     $('home-error').hidden = s.problems.length === 0;
     $('home-error').textContent = s.problems.join(' ');
 
@@ -103,15 +96,45 @@
     show('home');
   }
 
-  function spacer() {
-    const el = document.createElement('div');
-    el.className = 'cover side spacer';
-    return el;
+  // One element per game, kept between renders, so a move can slide each cover
+  // from its old place to its new one. Places: -1 left, 0 centre, 1 right;
+  // -2 and 2 are just off the sides, where covers wait hidden. With two games
+  // the left place stays empty (the other game sits on the right).
+  const covers = new Map(); // game id -> { el, place, look }
+
+  function placeCovers(games, sel, slide) {
+    const n = games.length;
+    const stage = $('carousel');
+    const seen = new Set();
+    games.forEach((g, i) => {
+      let d = (i - sel + n) % n;
+      if (d > n / 2) d -= n;
+      const place = Math.max(-2, Math.min(2, d));
+      let c = covers.get(g.id);
+      if (!c) {
+        c = { el: document.createElement('div'), place: null, look: null };
+        covers.set(g.id, c);
+        stage.append(c.el);
+      }
+      seen.add(g.id);
+      const look = JSON.stringify([g.cover, g.title, i % 4]);
+      if (look !== c.look) { fillCover(c.el, g, i); c.look = look; }
+      // New covers, rescans, and covers that wrap from one hidden side to the
+      // other jump straight to their place instead of flying across the TV.
+      const jump = !slide || c.place === null || Math.abs(place - c.place) > 1;
+      c.el.classList.toggle('instant', jump);
+      c.el.dataset.place = String(place);
+      c.el.classList.toggle('center', place === 0);
+      c.place = place;
+    });
+    for (const [id, c] of covers) if (!seen.has(id)) { c.el.remove(); covers.delete(id); }
+    void stage.offsetWidth; // apply the jumps now, then let later moves slide
+    requestAnimationFrame(() => { for (const c of covers.values()) c.el.classList.remove('instant'); });
   }
 
-  function cover(g, i, center) {
-    const el = document.createElement('div');
-    el.className = `cover ${center ? 'center' : 'side'}`;
+  function fillCover(el, g, i) {
+    el.className = 'cover';
+    el.replaceChildren();
     if (g.cover) {
       const img = new Image();
       img.alt = g.title;
@@ -122,7 +145,6 @@
       el.classList.add('card', `c${i % 4}`);
       el.textContent = g.title;
     }
-    return el;
   }
 
   // Keyboard on the language chooser: left/right move between flags, Enter picks.

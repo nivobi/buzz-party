@@ -29,21 +29,24 @@ h1 { font-size: 2.4rem; margin: 0 0 3vh; }
 #home { display: flex; flex-direction: column; align-items: center; padding-top: 3vh; }
 .hint.top { margin: 0 0 2vh; }
 
-.carousel { position: relative; width: 100%; height: 56vh; display: flex; align-items: center; justify-content: center; gap: 4vw; }
-.carousel.slide-next { animation: slide-next 220ms ease-out; }
-.carousel.slide-prev { animation: slide-prev 220ms ease-out; }
-@keyframes slide-next { from { transform: translateX(6vw); opacity: .6; } to { transform: none; opacity: 1; } }
-@keyframes slide-prev { from { transform: translateX(-6vw); opacity: .6; } to { transform: none; opacity: 1; } }
-
-.cover { position: relative; aspect-ratio: 7 / 10; border-radius: 1rem; overflow: hidden; flex: none;
-  box-shadow: 0 1.2vh 3vh rgba(0,0,0,.55); }
+/* Every cover is centre-sized (56vh) and placed with a transform, so moving to
+   a new place slides and resizes it. Side covers are scaled to 38vh (.68), one
+   step is half a centre cover + the old 4vw gap + half a side cover. */
+.carousel { position: relative; width: 100%; height: 56vh; --step: calc(19.6vh + 4vw + 13.3vh); }
+.cover { position: absolute; left: 50%; top: 0; height: 56vh; aspect-ratio: 7 / 10; border-radius: 1rem; overflow: hidden;
+  box-sizing: border-box; box-shadow: 0 1.2vh 3vh rgba(0,0,0,.55); outline: .45rem solid transparent;
+  transform: translateX(calc(-50% + var(--x, 0px))) scale(var(--s, 1)); opacity: var(--o, 1); z-index: var(--z, 1);
+  transition: transform 380ms cubic-bezier(.22,.8,.25,1), opacity 380ms ease, outline-color 380ms ease, box-shadow 380ms ease; }
+.cover.instant { transition: none; }
+.cover[data-place="-2"] { --x: calc(-2 * var(--step)); --s: .55; --o: 0; --z: 1; }
+.cover[data-place="-1"] { --x: calc(-1 * var(--step)); --s: .68; --o: .4; --z: 2; }
+.cover[data-place="0"]  { --x: 0px; --s: 1; --o: 1; --z: 3; }
+.cover[data-place="1"]  { --x: var(--step); --s: .68; --o: .4; --z: 2; }
+.cover[data-place="2"]  { --x: calc(2 * var(--step)); --s: .55; --o: 0; --z: 1; }
 .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.cover.side { height: 38vh; opacity: .4; }
-.cover.spacer { visibility: hidden; box-shadow: none; }
-.cover.center { height: 56vh; outline: .45rem solid var(--yellow); box-shadow: 0 0 5vh rgba(245,209,26,.55), 0 1.2vh 3vh rgba(0,0,0,.55); }
+.cover.center { outline-color: var(--yellow); box-shadow: 0 0 5vh rgba(245,209,26,.55), 0 1.2vh 3vh rgba(0,0,0,.55); }
 .cover.card { display: flex; align-items: center; justify-content: center; padding: 1.2rem; text-align: center;
   font-size: 1.6rem; font-weight: 900; line-height: 1.15; text-shadow: 0 2px 8px rgba(0,0,0,.5); }
-.cover.side.card { font-size: 1.1rem; }
 .cover.c0 { background: linear-gradient(160deg, var(--blue), #0c2f63); }
 .cover.c1 { background: linear-gradient(160deg, var(--orange), #7a3d00); }
 .cover.c2 { background: linear-gradient(160deg, var(--green), #0f4d1d); }
@@ -51,6 +54,7 @@ h1 { font-size: 2.4rem; margin: 0 0 3vh; }
 
 .game-title { font-size: 2.6rem; margin: 3.5vh 0 .6vh; text-align: center; max-width: 62vw; }
 .game-langs { margin: 0; color: var(--muted); font-size: 1.1rem; text-align: center; min-height: 1.4em; max-width: 62vw; }
+.game-count { margin: .8vh 0 0; color: var(--muted); font-size: .95rem; text-align: center; font-variant-numeric: tabular-nums; }
 #home .error { margin-top: 1vh; }
 
 .players { position: absolute; left: 4vw; bottom: 4vh; display: flex; gap: 1vw; }
