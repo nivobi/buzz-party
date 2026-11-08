@@ -54,5 +54,6 @@
   "wifi.error.not_found": "Kunne ikke finde {name}",
   "wifi.error.timeout": "Kunne ikke forbinde til {name}",
   "wifi.nosheet": "Ingen side? Åbn en hjemmeside",
-  "phone.status.wifi": "Sætter WiFi op – kig på TV'et"
+  "phone.status.wifi": "Sætter WiFi op – kig på TV'et",
+  "wifi.searching": "Forbinder til WiFi…"
 }

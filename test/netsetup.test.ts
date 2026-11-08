@@ -39,8 +39,13 @@ test('maps joining and connected', async () => {
     .toMatchObject({ mode: 'connected', ssid: 'Home' });
 });
 
-test('ignores off/client/waiting', async () => {
-  for (const mode of ['off', 'client', 'waiting', 'bogus']) {
+test('maps waiting (looking for a remembered network) so the TV can say so', async () => {
+  expect(await fetchNetsetup(ok({ mode: 'waiting', ssid: null, error: null, hotspot_ssid: 'BuzzParty-Setup' })))
+    .toEqual({ mode: 'waiting', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup', qr: null });
+});
+
+test('ignores off/client', async () => {
+  for (const mode of ['off', 'client', 'bogus']) {
     expect(await fetchNetsetup(ok({ mode, ssid: null, error: null, hotspot_ssid: 'BuzzParty-Setup' }))).toBeNull();
   }
 });
@@ -68,7 +73,7 @@ test('the shipped language files have every wifi text', async () => {
   const { readFileSync } = await import('node:fs');
   for (const lang of ['en', 'da']) {
     const d = JSON.parse(readFileSync(`web/i18n/${lang}.json`, 'utf8'));
-    for (const k of ['wifi.title', 'wifi.scan', 'wifi.connecting', 'wifi.connected', 'wifi.error.wrong_password',
+    for (const k of ['wifi.searching', 'wifi.title', 'wifi.scan', 'wifi.connecting', 'wifi.connected', 'wifi.error.wrong_password',
       'wifi.error.not_found', 'wifi.error.timeout', 'wifi.nosheet', 'phone.status.wifi']) {
       expect(d[k], `${lang} ${k}`).toBeTruthy();
     }

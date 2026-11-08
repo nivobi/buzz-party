@@ -5,7 +5,8 @@
 export type WifiError = 'wrong_password' | 'not_found' | 'timeout';
 
 export type WifiView = {
-  mode: 'hotspot' | 'joining' | 'connected';
+  /** waiting = no network yet, the box is looking for a remembered one (before setup starts). */
+  mode: 'waiting' | 'hotspot' | 'joining' | 'connected';
   /** The network being joined or that failed; null while just waiting for a phone. */
   ssid: string | null;
   error: WifiError | null;
@@ -16,7 +17,7 @@ export type WifiView = {
 };
 
 export const NETSETUP_URL = 'http://127.0.0.1:8431/status';
-const SHOWN = new Set(['hotspot', 'joining', 'connected']);
+const SHOWN = new Set(['waiting', 'hotspot', 'joining', 'connected']);
 const ERRORS = new Set(['wrong_password', 'not_found', 'timeout']);
 
 export async function fetchNetsetup(

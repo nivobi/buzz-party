@@ -108,6 +108,7 @@
     const name = w.ssid ?? '';
     const setup = w.mode === 'hotspot';
     $('wifi-title').textContent =
+      w.mode === 'waiting' ? i18n.t('wifi.searching') :
       w.mode === 'joining' ? i18n.t('wifi.connecting', { name }) :
       w.mode === 'connected' ? i18n.t('wifi.connected') :
       i18n.t('wifi.title');

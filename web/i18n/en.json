@@ -54,5 +54,6 @@
   "wifi.error.not_found": "Couldn’t find {name}",
   "wifi.error.timeout": "Couldn’t connect to {name}",
   "wifi.nosheet": "No page? Open any website",
-  "phone.status.wifi": "Setting up WiFi – look at the TV"
+  "phone.status.wifi": "Setting up WiFi – look at the TV",
+  "wifi.searching": "Connecting to WiFi…"
 }
