@@ -255,9 +255,11 @@ one and types the password. The TV shows "Connecting…", then "Connected ✓"
 A game in progress is never interrupted.
 
 The app only reads the service's state from `http://127.0.0.1:8431/status`.
-The service itself (`buzz-netsetup`) is not part of this repository: it runs
-the hotspot on the console's Broadcom card through a patched `wl` driver, so it
-is specific to that hardware. Without it the app behaves exactly as before.
+The service itself (`buzz-netsetup`) is **not published**: it runs the hotspot
+on the console's Broadcom card through a patched `wl` driver, so it only works
+on that hardware. The app part is here so a similar service can plug in: it
+only needs to answer that URL with the same JSON. Without a service the app
+behaves exactly as before.
 
 ## Buzzer lights (optional)
 
