@@ -48,8 +48,9 @@ Make what exists solid before adding more.
 - [ ] Try it on a 4K TV: 5x upscaling at full speed in a busy Buzz! Junior mini-game.
 - [x] Test on a TV over HDMI as the only screen (the console).
 - [ ] A Mac with a TV over HDMI, with both an extended and a mirrored desktop.
-- [ ] Check how each game chooses its in-game language (disc menu or console
-      setting) and, if needed, let the user set it.
+- [x] Check how each game chooses its in-game language (disc menu or console
+      setting): all the games on the console behave the same and pick it without
+      trouble, so no setting is needed.
 - [ ] Known small issues:
   - [x] Focus requests can briefly delay buzzer presses (macOS: key presses and window work now use separate helper processes).
   - [x] Key helper: restarts up to three times a minute, and the TV says so if the buzzers are dead.
