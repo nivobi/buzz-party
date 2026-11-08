@@ -181,24 +181,18 @@
     });
   }
 
-  // Keep the screen on where the browser allows it.
-  let wakeLock = null;
-  async function keepAwake() {
-    try {
-      wakeLock = await navigator.wakeLock?.request('screen');
-    } catch {
-      wakeLock = null;
-    }
-  }
+  // Keep the screen on during the game (keep-awake.js: wakeLock on HTTPS, else a looping video).
+  const awake = window.BuzzKeepAwake?.create({ document, navigator, secure: window.isSecureContext });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) releaseAll();
-    else keepAwake();
+    else awake?.resume();
   });
-  document.addEventListener('pointerdown', () => { if (!wakeLock) keepAwake(); }, { once: true });
+  // Every tap, not just the first: if a start was refused, the next tap retries.
+  document.addEventListener('pointerdown', () => { awake?.start(); });
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('gesturestart', e => e.preventDefault());
   document.addEventListener('dblclick', e => e.preventDefault());
 
-  keepAwake();
+  if (window.isSecureContext) awake?.start(); // wakeLock needs no tap
   connect();
 })();
