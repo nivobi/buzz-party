@@ -61,10 +61,36 @@ picker shows the cover art, which is downloaded for you.
 supply your own legally obtained copies. Buzz Party is not affiliated with,
 endorsed by or sponsored by Sony, Relentless Software or the PCSX2 team.
 
+## Download
+
+Ready-made builds are on the [releases page](https://github.com/nivobi/buzz-party/releases/latest):
+
+- **macOS (Apple Silicon):** `buzz-party-<version>-macos-arm64.zip`. Unzip it and
+  move **Buzz Party** to Applications. The app is not signed with an Apple
+  Developer ID, so the first time macOS says it can't be opened: **right-click
+  the app → Open → Open** (or run
+  `xattr -dr com.apple.quarantine "/Applications/Buzz Party.app"`). After that it
+  opens normally. Grant the Accessibility permission when asked (see
+  [Setup](#setup)); with a downloaded build macOS asks for it again after each
+  update. Intel Macs: build it yourself (below).
+- **Linux (x64, X11):** `buzz-party-<version>-linux-x64.tar.gz`. Unpack it to
+  `/opt/buzz-party` and set up the sandbox helper once:
+
+  ```sh
+  tar -xzf buzz-party-*-linux-x64.tar.gz
+  sudo mv buzz-party-*-linux-x64 /opt/buzz-party
+  sudo chown root:root /opt/buzz-party/chrome-sandbox && sudo chmod 4755 /opt/buzz-party/chrome-sandbox
+  /opt/buzz-party/buzz-party
+  ```
+
+  You still need the one-time system setup from [Linux](#linux) (X11,
+  `/dev/uinput` access, PCSX2).
+
+Then continue with [Setup](#setup). Or build it yourself:
+
 ## Install
 
-There is no download yet, so you build Buzz Party yourself. It takes a few
-minutes. On a Mac you need:
+Building Buzz Party yourself takes a few minutes. On a Mac you need:
 
 - [git](https://git-scm.com) and [Node.js](https://nodejs.org) 22.12 or newer
   (check with `node -v`).
@@ -163,7 +189,7 @@ What you need:
 
 - An **X11 session** (Xorg with a light window manager such as Openbox). Wayland
   is not supported: window focus and placement use `xdotool`.
-- git and Node.js 22.12 or newer, to build the app (see [Install](#install)).
+- Only to build it yourself: git and Node.js 22.12 or newer (see [Install](#install)).
 - `xdotool`, a C compiler (`cc`) to build the key helper, and `fuse2` if you use
   an AppImage.
 - The [PCSX2](https://pcsx2.net) **AppImage**. Buzz Party looks for it in

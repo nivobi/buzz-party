@@ -1,0 +1,108 @@
+name: Release
+
+# Builds the downloads and attaches them to the GitHub release.
+# - Pushing a tag like v1.2.0 builds that tag and creates its release
+#   (notes from that version's section in CHANGELOG.md) if it doesn't exist yet.
+# - Running it by hand builds any existing tag, e.g. to add downloads to an
+#   older release. With "publish" off it only keeps the files as build artifacts.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to build (for example v1.0.0)
+        required: true
+      publish:
+        description: Attach the files to that tag's release
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-latest
+          - name: macos-arm64
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          npm run dist:linux
+          name="buzz-party-${TAG#v}-linux-x64"
+          mv dist-app/linux-unpacked "$name"
+          tar -czf "$name.tar.gz" "$name"
+          echo "FILE=$name.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # No signing certificate on CI: scripts/sign-mac.mjs signs ad hoc.
+          npm run dist
+          name="buzz-party-${TAG#v}-macos-arm64"
+          ditto -c -k --keepParent "dist-app/mac-arm64/Buzz Party.app" "$name.zip"
+          echo "FILE=$name.zip" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ env.FILE }}
+          if-no-files-found: error
+
+  publish:
+    name: Attach to the release
+    needs: build
+    if: github.event_name == 'push' || inputs.publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: files
+          merge-multiple: true
+
+      - name: Create the release if needed, then upload
+        run: |
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            # This version's section from the changelog: from "## [x.y.z]" to the next "## ".
+            awk -v v="${TAG#v}" '
+              $0 ~ "^## \\[" v "\\]" { f = 1; next }
+              f && /^## / { exit }
+              f' CHANGELOG.md > notes.md
+            gh release create "$TAG" --verify-tag --title "Buzz Party ${TAG#v}" --notes-file notes.md
+          fi
+          gh release upload "$TAG" files/* --clobber

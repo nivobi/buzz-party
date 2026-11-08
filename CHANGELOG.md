@@ -6,6 +6,12 @@ All notable changes to Buzz Party. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Downloads:** every release gets a ready-made macOS (Apple Silicon) zip and
+  a Linux (x64) tarball, built by GitHub Actions. The Mac build is not signed
+  with an Apple Developer ID; the README explains the first open.
+
 ## [1.0.0] - 2026-11-08
 
 The first release: phones as Buzz! buzzers for the PS2 Buzz! games, on macOS
