@@ -146,5 +146,13 @@ test('mac pgrep pattern finds any PCSX2 app bundle, not Buzz Party itself', () =
   expect(re.test('/Applications/PCSX2 2.8.2.app/Contents/MacOS/PCSX2 -batch')).toBe(true);
   expect(re.test('open -n -W -a /Applications/PCSX2.app --args -batch')).toBe(false);
   expect(re.test('/Applications/Buzz Party.app/Contents/MacOS/Buzz Party')).toBe(false);
-  expect(pcsx2PgrepArgs('linux')).toEqual(['-x', 'pcsx2-qt']);
+  expect(pcsx2PgrepArgs('linux')).toEqual(['-x', 'pcsx2.*']);
+});
+
+test('linux pgrep pattern finds AppImage and packaged PCSX2, not the AppRun wrapper', () => {
+  const [flag, pattern] = pcsx2PgrepArgs('linux');
+  expect(flag).toBe('-x');
+  const whole = new RegExp(`^(?:${pattern})$`); // pgrep -x matches the whole process name
+  for (const name of ['pcsx2-qt', 'pcsx2', 'pcsx2-buzzparty', 'pcsx2-v2.8.2-li']) expect(whole.test(name)).toBe(true);
+  for (const name of ['AppRun', 'buzz-party', 'buzzhelper']) expect(whole.test(name)).toBe(false);
 });

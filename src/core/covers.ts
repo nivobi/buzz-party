@@ -19,12 +19,16 @@ type FetchFn = (url: string) => Promise<Response>;
 /** Downloads missing covers once per disc; never throws, never overwrites. */
 export class CoverFetcher {
   private tried = new Set<string>();
+  /** Serials whose download failed on the network, and when to try again. */
+  private retryAt = new Map<string, number>();
 
-  constructor(private o: { dir: string; fetch?: FetchFn }) {}
+  constructor(private o: { dir: string; fetch?: FetchFn; now?: () => number; retryMs?: number }) {}
 
   /** True if a cover was downloaded just now. */
   async ensure(serial: string): Promise<boolean> {
     if (!SERIAL.test(serial) || this.tried.has(serial)) return false;
+    const now = (this.o.now ?? Date.now)();
+    if (now < (this.retryAt.get(serial) ?? 0)) return false;
     this.tried.add(serial);
     if (await findCover(serial, this.o.dir)) return false;
     try {
@@ -37,6 +41,9 @@ export class CoverFetcher {
       await rename(`${file}.part`, file);
       return true;
     } catch {
+      // No network (for example the app started before it was up): try again later.
+      this.tried.delete(serial);
+      this.retryAt.set(serial, now + (this.o.retryMs ?? 30_000));
       return false;
     }
   }
