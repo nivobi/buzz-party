@@ -28,7 +28,7 @@ test('fetchNetsetup returns null on refused / bad JSON / timeout', async () => {
 test('maps hotspot with error', async () => {
   const f = ok({ mode: 'hotspot', ssid: 'Café "Ø" 🎉', error: 'wrong_password', hotspot_ssid: 'BuzzParty-Setup' });
   expect(await fetchNetsetup(f)).toEqual({
-    mode: 'hotspot', ssid: 'Café "Ø" 🎉', error: 'wrong_password', hotspotSsid: 'BuzzParty-Setup',
+    mode: 'hotspot', ssid: 'Café "Ø" 🎉', error: 'wrong_password', hotspotSsid: 'BuzzParty-Setup', setupIn: null,
   });
 });
 
@@ -41,7 +41,15 @@ test('maps joining and connected', async () => {
 
 test('maps waiting (looking for a remembered network) so the TV can say so', async () => {
   expect(await fetchNetsetup(ok({ mode: 'waiting', ssid: null, error: null, hotspot_ssid: 'BuzzParty-Setup' })))
-    .toEqual({ mode: 'waiting', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup' });
+    .toEqual({ mode: 'waiting', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup', setupIn: null });
+});
+
+test('passes on the countdown to setup while waiting (whole seconds, never negative)', async () => {
+  const w = (setup_in: unknown) => ok({ mode: 'waiting', ssid: null, error: null, hotspot_ssid: 'BuzzParty-Setup', setup_in });
+  expect(await fetchNetsetup(w(45))).toMatchObject({ setupIn: 45 });
+  expect(await fetchNetsetup(w(0))).toMatchObject({ setupIn: 0 });
+  expect(await fetchNetsetup(w(12.4))).toMatchObject({ setupIn: 13 });
+  for (const bad of [null, -3, 'soon', Number.NaN]) expect(await fetchNetsetup(w(bad))).toMatchObject({ setupIn: null });
 });
 
 test('ignores off/client', async () => {
@@ -52,7 +60,7 @@ test('ignores off/client', async () => {
 
 test('unknown error codes and odd field types are dropped', async () => {
   const v = await fetchNetsetup(ok({ mode: 'hotspot', ssid: 42, error: 'kaboom', hotspot_ssid: null }));
-  expect(v).toEqual({ mode: 'hotspot', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup' });
+  expect(v).toEqual({ mode: 'hotspot', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup', setupIn: null });
 });
 
 test('asks the default URL', async () => {
@@ -68,10 +76,11 @@ test('the shipped language files have every wifi text', async () => {
   for (const lang of ['en', 'da']) {
     const d = JSON.parse(readFileSync(`web/i18n/${lang}.json`, 'utf8'));
     for (const k of ['wifi.searching', 'wifi.title', 'wifi.join', 'wifi.joinAgain', 'wifi.thenPick', 'wifi.connecting', 'wifi.connected', 'wifi.error.wrong_password',
-      'wifi.error.not_found', 'wifi.error.timeout', 'wifi.nosheet', 'phone.status.wifi']) {
+      'wifi.error.not_found', 'wifi.error.timeout', 'wifi.nosheet', 'wifi.setupIn', 'phone.status.wifi']) {
       expect(d[k], `${lang} ${k}`).toBeTruthy();
     }
     expect(d['wifi.connecting']).toContain('{name}');
+    expect(d['wifi.setupIn']).toContain('{n}');
     expect(d['wifi.scan'], `${lang} wifi.scan is gone with the QR code`).toBeUndefined();
   }
 });

@@ -112,6 +112,10 @@
       w.mode === 'joining' ? i18n.t('wifi.connecting', { name }) :
       w.mode === 'connected' ? i18n.t('wifi.connected') :
       i18n.t('wifi.title');
+    // The wait before setup (20 s at boot, 60 s after WiFi is lost) must not look stuck.
+    const counting = w.mode === 'waiting' && w.setupIn !== null && w.setupIn !== undefined;
+    $('wifi-countdown').hidden = !counting;
+    $('wifi-countdown').textContent = counting ? i18n.t('wifi.setupIn', { n: w.setupIn }) : '';
     $('wifi-error').hidden = !(setup && w.error);
     $('wifi-error').textContent = setup && w.error ? i18n.t(`wifi.error.${w.error}`, { name }) : '';
     $('wifi-setup').hidden = !setup;

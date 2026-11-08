@@ -12,6 +12,8 @@ export type WifiView = {
   error: WifiError | null;
   /** The setup hotspot's name, for the TV text. */
   hotspotSsid: string;
+  /** While waiting: seconds until setup starts, for a countdown. Null otherwise. */
+  setupIn: number | null;
 };
 
 export const NETSETUP_URL = 'http://127.0.0.1:8431/status';
@@ -37,6 +39,7 @@ export async function fetchNetsetup(
       ssid: typeof o.ssid === 'string' ? o.ssid : null,
       error: typeof o.error === 'string' && ERRORS.has(o.error) ? (o.error as WifiError) : null,
       hotspotSsid: typeof o.hotspot_ssid === 'string' && o.hotspot_ssid ? o.hotspot_ssid : 'BuzzParty-Setup',
+      setupIn: typeof o.setup_in === 'number' && o.setup_in >= 0 ? Math.ceil(o.setup_in) : null,
     };
   } catch {
     return null;

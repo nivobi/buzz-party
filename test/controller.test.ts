@@ -362,7 +362,7 @@ describe('buzzer lights', () => {
   });
 });
 
-const hotspot = { mode: 'hotspot' as const, ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup' };
+const hotspot = { mode: 'hotspot' as const, ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup', setupIn: null };
 
 test('wifi view puts the TV in wifi mode', () => {
   const s = setup();

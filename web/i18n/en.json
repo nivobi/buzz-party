@@ -55,6 +55,7 @@
   "wifi.nosheet": "No page? Open any website",
   "phone.status.wifi": "Setting up WiFi – look at the TV",
   "wifi.searching": "Connecting to WiFi…",
+  "wifi.setupIn": "Setup starts in {n} s",
   "wifi.join": "On your phone, open WiFi settings and join",
   "wifi.joinAgain": "On your phone, open WiFi settings and join again",
   "wifi.thenPick": "Then pick your WiFi on the page that opens"
