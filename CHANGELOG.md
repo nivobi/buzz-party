@@ -12,6 +12,11 @@ All notable changes to Buzz Party. The format follows
   a Linux (x64) tarball, built by GitHub Actions. The Mac build is not signed
   with an Apple Developer ID; the README explains the first open.
 
+### Changed
+
+- **Electron 45** (from 44), plus updated electron-builder, vitest and `ws`.
+  Checked on the console box with a full game round.
+
 ## [1.0.0] - 2026-11-08
 
 The first release: phones as Buzz! buzzers for the PS2 Buzz! games, on macOS
