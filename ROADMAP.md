@@ -36,7 +36,9 @@ an issue first so we can talk about it.
 
 Make what exists solid before adding more.
 
-- [ ] Test with 2–4 phones at once, including at least one iPhone and one Android.
+- [x] Test with several phones at once: a short game with 3 iPhones on the console
+      went fine.
+- [ ] The same with an Android phone in the mix.
 - [ ] Failure checks: a phone locks mid-game, Wi-Fi drops for a couple of
       minutes, "Invite a player", "Back to games", "Turn off".
 - [x] Find out whether iPhones dim their screen mid-game over plain HTTP: they do
@@ -44,7 +46,8 @@ Make what exists solid before adding more.
       video loops inline.
 - [ ] Confirm the keep-awake fallback on an iPhone and an Android phone.
 - [ ] Try it on a 4K TV: 5x upscaling at full speed in a busy Buzz! Junior mini-game.
-- [ ] Test on a TV over HDMI, with both an extended and a mirrored desktop.
+- [x] Test on a TV over HDMI as the only screen (the console).
+- [ ] A Mac with a TV over HDMI, with both an extended and a mirrored desktop.
 - [ ] Check how each game chooses its in-game language (disc menu or console
       setting) and, if needed, let the user set it.
 - [ ] Known small issues:
