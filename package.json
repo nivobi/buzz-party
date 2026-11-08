@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "qrcode": "1.5.4",
-    "ws": "8.22.0"
+    "ws": "8.22.1"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
