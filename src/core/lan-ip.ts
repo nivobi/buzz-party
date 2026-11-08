@@ -2,8 +2,9 @@ import { execFile } from 'node:child_process';
 import type { NetworkInterfaceInfo } from 'node:os';
 import { promisify } from 'node:util';
 
-// Virtual and tunnel adapters whose addresses phones cannot reach (VMs, containers, VPNs, Apple's peer-to-peer links).
-const VIRTUAL_IFACE = /^(docker|br-|veth|utun|bridge|vmnet|vmenet|vnic|vboxnet|virbr|lxc|lxd|cni|flannel|tailscale|zt|wg|awdl|llw|ap\d)/;
+// Virtual and tunnel adapters whose addresses phones cannot reach (VMs, containers, VPNs, Apple's peer-to-peer links,
+// the box's WiFi setup hotspot buzz0).
+const VIRTUAL_IFACE = /^(docker|br-|veth|utun|bridge|vmnet|vmenet|vnic|vboxnet|virbr|lxc|lxd|cni|flannel|tailscale|zt|wg|awdl|llw|ap\d|buzz)/;
 const PHYSICAL_IFACE = /^(en|eth|wl)/;
 
 function isPrivate(ip: string): boolean {

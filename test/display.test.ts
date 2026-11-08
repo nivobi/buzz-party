@@ -15,6 +15,6 @@ test('one display (or mirrored): use it', () => {
 
 test('setup, network and games are re-checked on every screen except during a game', async () => {
   const { shouldRecheck } = await import('../src/app/display.js');
-  expect(['setup', 'picker', 'waiting'].map(m => shouldRecheck(m as never))).toEqual([true, true, true]);
+  expect(['setup', 'picker', 'waiting', 'wifi'].map(m => shouldRecheck(m as never))).toEqual([true, true, true, true]);
   expect(['launching', 'game'].map(m => shouldRecheck(m as never))).toEqual([false, false]);
 });

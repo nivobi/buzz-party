@@ -1,0 +1,86 @@
+import { fetchNetsetup } from '../src/core/netsetup.js';
+
+const ok = (body: unknown) => (async () => new Response(JSON.stringify(body), {
+  status: 200, headers: { 'Content-Type': 'application/json' },
+})) as unknown as typeof fetch;
+
+test('fetchNetsetup returns null on refused / bad JSON / timeout', async () => {
+  const refused = (async () => { throw new TypeError('fetch failed'); }) as unknown as typeof fetch;
+  expect(await fetchNetsetup(refused)).toBeNull();
+
+  const junk = (async () => new Response('<html>nope', { status: 200 })) as unknown as typeof fetch;
+  expect(await fetchNetsetup(junk)).toBeNull();
+
+  const notObject = ok([1, 2, 3]);
+  expect(await fetchNetsetup(notObject)).toBeNull();
+
+  const serverError = (async () => new Response('{}', { status: 500 })) as unknown as typeof fetch;
+  expect(await fetchNetsetup(serverError)).toBeNull();
+
+  const hang = ((_url: string, init?: RequestInit) => new Promise((_res, rej) => {
+    init?.signal?.addEventListener('abort', () => rej(new DOMException('aborted', 'AbortError')));
+  })) as unknown as typeof fetch;
+  const t0 = Date.now();
+  expect(await fetchNetsetup(hang, 'http://127.0.0.1:8431/status', 50)).toBeNull();
+  expect(Date.now() - t0).toBeLessThan(1000);
+});
+
+test('maps hotspot with error', async () => {
+  const f = ok({ mode: 'hotspot', ssid: 'Café "Ø" 🎉', error: 'wrong_password', hotspot_ssid: 'BuzzParty-Setup' });
+  expect(await fetchNetsetup(f)).toEqual({
+    mode: 'hotspot', ssid: 'Café "Ø" 🎉', error: 'wrong_password', hotspotSsid: 'BuzzParty-Setup', setupIn: null,
+  });
+});
+
+test('maps joining and connected', async () => {
+  expect(await fetchNetsetup(ok({ mode: 'joining', ssid: 'Home', error: null, hotspot_ssid: 'BuzzParty-Setup' })))
+    .toMatchObject({ mode: 'joining', ssid: 'Home', error: null });
+  expect(await fetchNetsetup(ok({ mode: 'connected', ssid: 'Home', error: null, hotspot_ssid: 'BuzzParty-Setup' })))
+    .toMatchObject({ mode: 'connected', ssid: 'Home' });
+});
+
+test('maps waiting (looking for a remembered network) so the TV can say so', async () => {
+  expect(await fetchNetsetup(ok({ mode: 'waiting', ssid: null, error: null, hotspot_ssid: 'BuzzParty-Setup' })))
+    .toEqual({ mode: 'waiting', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup', setupIn: null });
+});
+
+test('passes on the countdown to setup while waiting (whole seconds, never negative)', async () => {
+  const w = (setup_in: unknown) => ok({ mode: 'waiting', ssid: null, error: null, hotspot_ssid: 'BuzzParty-Setup', setup_in });
+  expect(await fetchNetsetup(w(45))).toMatchObject({ setupIn: 45 });
+  expect(await fetchNetsetup(w(0))).toMatchObject({ setupIn: 0 });
+  expect(await fetchNetsetup(w(12.4))).toMatchObject({ setupIn: 13 });
+  for (const bad of [null, -3, 'soon', Number.NaN]) expect(await fetchNetsetup(w(bad))).toMatchObject({ setupIn: null });
+});
+
+test('ignores off/client', async () => {
+  for (const mode of ['off', 'client', 'bogus']) {
+    expect(await fetchNetsetup(ok({ mode, ssid: null, error: null, hotspot_ssid: 'BuzzParty-Setup' }))).toBeNull();
+  }
+});
+
+test('unknown error codes and odd field types are dropped', async () => {
+  const v = await fetchNetsetup(ok({ mode: 'hotspot', ssid: 42, error: 'kaboom', hotspot_ssid: null }));
+  expect(v).toEqual({ mode: 'hotspot', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup', setupIn: null });
+});
+
+test('asks the default URL', async () => {
+  const seen: string[] = [];
+  const f = (async (url: string) => { seen.push(url); throw new Error('x'); }) as unknown as typeof fetch;
+  await fetchNetsetup(f);
+  expect(seen).toEqual(['http://127.0.0.1:8431/status']);
+});
+
+
+test('the shipped language files have every wifi text', async () => {
+  const { readFileSync } = await import('node:fs');
+  for (const lang of ['en', 'da']) {
+    const d = JSON.parse(readFileSync(`web/i18n/${lang}.json`, 'utf8'));
+    for (const k of ['wifi.searching', 'wifi.title', 'wifi.join', 'wifi.joinAgain', 'wifi.thenPick', 'wifi.connecting', 'wifi.connected', 'wifi.error.wrong_password',
+      'wifi.error.not_found', 'wifi.error.timeout', 'wifi.nosheet', 'wifi.setupIn', 'phone.status.wifi']) {
+      expect(d[k], `${lang} ${k}`).toBeTruthy();
+    }
+    expect(d['wifi.connecting']).toContain('{name}');
+    expect(d['wifi.setupIn']).toContain('{n}');
+    expect(d['wifi.scan'], `${lang} wifi.scan is gone with the QR code`).toBeUndefined();
+  }
+});
