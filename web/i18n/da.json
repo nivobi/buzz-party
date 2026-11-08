@@ -47,7 +47,6 @@
   "phone.confirmBack": "Stop spillet og gå tilbage til spillene?",
   "phone.confirmOff": "Sluk Buzz Party for alle?",
   "wifi.title": "Forbind boksen til jeres WiFi",
-  "wifi.scan": "Scan med telefonen og vælg jeres WiFi",
   "wifi.connecting": "Forbinder til {name}…",
   "wifi.connected": "Forbundet ✓",
   "wifi.error.wrong_password": "Kunne ikke forbinde til {name}: forkert adgangskode?",
@@ -55,5 +54,8 @@
   "wifi.error.timeout": "Kunne ikke forbinde til {name}",
   "wifi.nosheet": "Ingen side? Åbn en hjemmeside",
   "phone.status.wifi": "Sætter WiFi op – kig på TV'et",
-  "wifi.searching": "Forbinder til WiFi…"
+  "wifi.searching": "Forbinder til WiFi…",
+  "wifi.join": "Åbn WiFi-indstillinger på telefonen og vælg",
+  "wifi.joinAgain": "Åbn WiFi-indstillinger på telefonen og vælg igen",
+  "wifi.thenPick": "Vælg derefter jeres WiFi på siden, der åbner"
 }

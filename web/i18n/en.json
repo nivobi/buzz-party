@@ -47,7 +47,6 @@
   "phone.confirmBack": "Stop this game and go back to the games?",
   "phone.confirmOff": "Turn off Buzz Party for everyone?",
   "wifi.title": "Connect the box to your WiFi",
-  "wifi.scan": "Scan with your phone, then pick your WiFi",
   "wifi.connecting": "Connecting to {name}…",
   "wifi.connected": "Connected ✓",
   "wifi.error.wrong_password": "Couldn’t connect to {name}: wrong password?",
@@ -55,5 +54,8 @@
   "wifi.error.timeout": "Couldn’t connect to {name}",
   "wifi.nosheet": "No page? Open any website",
   "phone.status.wifi": "Setting up WiFi – look at the TV",
-  "wifi.searching": "Connecting to WiFi…"
+  "wifi.searching": "Connecting to WiFi…",
+  "wifi.join": "On your phone, open WiFi settings and join",
+  "wifi.joinAgain": "On your phone, open WiFi settings and join again",
+  "wifi.thenPick": "Then pick your WiFi on the page that opens"
 }

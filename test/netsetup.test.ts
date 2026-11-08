@@ -28,7 +28,7 @@ test('fetchNetsetup returns null on refused / bad JSON / timeout', async () => {
 test('maps hotspot with error', async () => {
   const f = ok({ mode: 'hotspot', ssid: 'Café "Ø" 🎉', error: 'wrong_password', hotspot_ssid: 'BuzzParty-Setup' });
   expect(await fetchNetsetup(f)).toEqual({
-    mode: 'hotspot', ssid: 'Café "Ø" 🎉', error: 'wrong_password', hotspotSsid: 'BuzzParty-Setup', qr: null,
+    mode: 'hotspot', ssid: 'Café "Ø" 🎉', error: 'wrong_password', hotspotSsid: 'BuzzParty-Setup',
   });
 });
 
@@ -41,7 +41,7 @@ test('maps joining and connected', async () => {
 
 test('maps waiting (looking for a remembered network) so the TV can say so', async () => {
   expect(await fetchNetsetup(ok({ mode: 'waiting', ssid: null, error: null, hotspot_ssid: 'BuzzParty-Setup' })))
-    .toEqual({ mode: 'waiting', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup', qr: null });
+    .toEqual({ mode: 'waiting', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup' });
 });
 
 test('ignores off/client', async () => {
@@ -52,7 +52,7 @@ test('ignores off/client', async () => {
 
 test('unknown error codes and odd field types are dropped', async () => {
   const v = await fetchNetsetup(ok({ mode: 'hotspot', ssid: 42, error: 'kaboom', hotspot_ssid: null }));
-  expect(v).toEqual({ mode: 'hotspot', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup', qr: null });
+  expect(v).toEqual({ mode: 'hotspot', ssid: null, error: null, hotspotSsid: 'BuzzParty-Setup' });
 });
 
 test('asks the default URL', async () => {
@@ -62,21 +62,16 @@ test('asks the default URL', async () => {
   expect(seen).toEqual(['http://127.0.0.1:8431/status']);
 });
 
-test('wifiQrText joins the open setup hotspot, escaping special characters', async () => {
-  const { wifiQrText } = await import('../src/core/netsetup.js');
-  expect(wifiQrText('BuzzParty-Setup')).toBe('WIFI:T:nopass;S:BuzzParty-Setup;;');
-  // a ; b , c : d \ e " f — each of ; , : \ " gets a backslash in front.
-  expect(wifiQrText(String.raw`a;b,c:d\e"f`)).toBe(String.raw`WIFI:T:nopass;S:a\;b\,c\:d\\e\"f;;`);
-});
 
 test('the shipped language files have every wifi text', async () => {
   const { readFileSync } = await import('node:fs');
   for (const lang of ['en', 'da']) {
     const d = JSON.parse(readFileSync(`web/i18n/${lang}.json`, 'utf8'));
-    for (const k of ['wifi.searching', 'wifi.title', 'wifi.scan', 'wifi.connecting', 'wifi.connected', 'wifi.error.wrong_password',
+    for (const k of ['wifi.searching', 'wifi.title', 'wifi.join', 'wifi.joinAgain', 'wifi.thenPick', 'wifi.connecting', 'wifi.connected', 'wifi.error.wrong_password',
       'wifi.error.not_found', 'wifi.error.timeout', 'wifi.nosheet', 'phone.status.wifi']) {
       expect(d[k], `${lang} ${k}`).toBeTruthy();
     }
     expect(d['wifi.connecting']).toContain('{name}');
+    expect(d['wifi.scan'], `${lang} wifi.scan is gone with the QR code`).toBeUndefined();
   }
 });

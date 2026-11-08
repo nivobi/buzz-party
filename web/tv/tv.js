@@ -116,9 +116,9 @@
     $('wifi-error').textContent = setup && w.error ? i18n.t(`wifi.error.${w.error}`, { name }) : '';
     $('wifi-setup').hidden = !setup;
     if (setup) {
-      if (w.qr) $('wifi-qr').src = w.qr;
-      $('wifi-scan').textContent = i18n.t('wifi.scan');
+      $('wifi-join').textContent = i18n.t(w.error ? 'wifi.joinAgain' : 'wifi.join');
       $('wifi-ssid').textContent = w.hotspotSsid;
+      $('wifi-then').textContent = i18n.t('wifi.thenPick');
       $('wifi-nosheet').textContent = i18n.t('wifi.nosheet');
     }
     show('wifi');

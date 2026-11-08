@@ -12,8 +12,6 @@ export type WifiView = {
   error: WifiError | null;
   /** The setup hotspot's name, for the TV text. */
   hotspotSsid: string;
-  /** QR code (data URL) that joins the hotspot; filled in by main.ts. */
-  qr: string | null;
 };
 
 export const NETSETUP_URL = 'http://127.0.0.1:8431/status';
@@ -39,16 +37,10 @@ export async function fetchNetsetup(
       ssid: typeof o.ssid === 'string' ? o.ssid : null,
       error: typeof o.error === 'string' && ERRORS.has(o.error) ? (o.error as WifiError) : null,
       hotspotSsid: typeof o.hotspot_ssid === 'string' && o.hotspot_ssid ? o.hotspot_ssid : 'BuzzParty-Setup',
-      qr: null,
     };
   } catch {
     return null;
   } finally {
     clearTimeout(timer);
   }
-}
-
-/** QR text that joins the open setup hotspot (the WIFI: format phones' cameras read). */
-export function wifiQrText(ssid: string): string {
-  return `WIFI:T:nopass;S:${ssid.replace(/([\\;,:"])/g, '\\$1')};;`;
 }

@@ -15,7 +15,7 @@ import { CoverFetcher, findCover } from './core/covers.js';
 import { scanGames, type Game } from './core/games.js';
 import { defaultRouteInterface, pickLanIp } from './core/lan-ip.js';
 import { isLang, loadDictionaries, translator, type Lang } from './core/i18n.js';
-import { fetchNetsetup, wifiQrText } from './core/netsetup.js';
+import { fetchNetsetup } from './core/netsetup.js';
 import { ensureFolders, paths, pickBios } from './core/paths.js';
 import { startFakeLights, startLightListener } from './core/lights.js';
 import { findPcsx2Candidates, isBuzzPartyBuild, Pcsx2Manager } from './core/pcsx2-manager.js';
@@ -160,7 +160,6 @@ app.whenReady().then(async () => {
   // service every poll is null and nothing changes.
   if (process.platform === 'linux') {
     let lastWifi = 'null';
-    let wifiQr: { ssid: string; qr: string } | null = null;
     let polling = false;
     setInterval(async () => {
       if (polling) return;
@@ -170,12 +169,6 @@ app.whenReady().then(async () => {
         const key = JSON.stringify(wifi);
         if (key === lastWifi) return;
         lastWifi = key;
-        if (wifi?.mode === 'hotspot') {
-          if (wifiQr?.ssid !== wifi.hotspotSsid) {
-            wifiQr = { ssid: wifi.hotspotSsid, qr: await QRCode.toDataURL(wifiQrText(wifi.hotspotSsid), { margin: 1, width: 512 }) };
-          }
-          wifi.qr = wifiQr.qr;
-        }
         // Setup over: re-check at once, so the picker shows the join QR code for the new network.
         if (wifi === null && shouldRecheck(controller.tvState().mode)) {
           controller.update({ ...(await check(false).catch(() => ({}))), wifi: null });
