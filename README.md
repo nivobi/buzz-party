@@ -215,6 +215,21 @@ openbox &
 exec /opt/buzz-party/buzz-party
 ```
 
+### WiFi setup on the TV (optional)
+
+A console taken to a new house has no WiFi it knows. With a small setup
+service on the box, the TV then walks the host through it: "Connecting to
+WiFi…" with a countdown, then "join **BuzzParty-Setup** in your phone's WiFi
+settings". The phone gets a page listing the house's networks; the host picks
+one and types the password. The TV shows "Connecting…", then "Connected ✓"
+(or "wrong password?" and the hotspot again), and the box remembers the network.
+A game in progress is never interrupted.
+
+The app only reads the service's state from `http://127.0.0.1:8431/status`.
+The service itself (`buzz-netsetup`) is not part of this repository: it runs
+the hotspot on the console's Broadcom card through a patched `wl` driver, so it
+is specific to that hardware. Without it the app behaves exactly as before.
+
 ## Buzzer lights (optional)
 
 On a real Buzz! controller the game lights up the big red button: blinking for

@@ -460,6 +460,18 @@ test('wifi never interrupts a game', async () => {
   expect(s.c.tvState().mode).toBe('wifi');
 });
 
+test('wifi waits while a game is closing, then shows', async () => {
+  const s = await inGame();
+  let done!: () => void;
+  s.runner.stopGate = new Promise<void>(r => { done = r; });
+  s.c.phone('p', { t: 'menu', action: 'back' });
+  s.c.update({ wifi: hotspot });
+  expect(s.c.tvState().mode).toBe('stopping');
+  done();
+  await s.flush();
+  expect(s.c.tvState().mode).toBe('wifi');
+});
+
 test('buttons do not launch a game from the wifi screen', async () => {
   const s = setup();
   s.join('p', 1);
