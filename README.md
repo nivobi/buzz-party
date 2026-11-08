@@ -1,8 +1,11 @@
 # Buzz Party
 
-Play the PS2 **Buzz!** party games with your phones as buzzers. Built and tested
-with the **Buzz! Junior** games; the quiz games (The Music Quiz, The Big Quiz and
-so on) are recognised too but have not been tested yet.
+[![CI](https://github.com/nivobi/buzz-party/actions/workflows/ci.yml/badge.svg)](https://github.com/nivobi/buzz-party/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Play the PS2 **Buzz!** party games with your phones as buzzers. Built around
+the **Buzz! Junior** games; the quiz games (The Music Quiz, The Big Quiz and so
+on) work too.
 
 Buzz Party is a small desktop app. It shows a game picker on the TV, lets up to
 four people join by scanning a QR code, and turns each phone into a Buzz!
@@ -300,7 +303,14 @@ Notes:
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md).
+See [ROADMAP.md](ROADMAP.md), and [CHANGELOG.md](CHANGELOG.md) for what changed
+in each release. The design notes behind the app are in [docs/design](docs/design).
+
+## Contributing
+
+Bug reports, testing on other setups and pull requests are welcome: see
+[CONTRIBUTING.md](CONTRIBUTING.md). Please report security problems privately
+([SECURITY.md](SECURITY.md)).
 
 ## License
 

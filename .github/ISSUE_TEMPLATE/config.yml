@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem
+    url: https://github.com/nivobi/buzz-party/security/advisories/new
+    about: Report security problems privately, not in a public issue.
+  - name: PCSX2 itself
+    url: https://github.com/PCSX2/pcsx2/issues
+    about: Problems in the emulator that also happen without Buzz Party belong to PCSX2.

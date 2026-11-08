@@ -1,0 +1,59 @@
+name: Bug report
+description: Something doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please **don't attach a BIOS, a game image or copyrighted covers**.
+        Security problems: report them privately instead (see SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start Buzz Party
+        2. Join with two phones
+        3. ...
+  - type: dropdown
+    id: os
+    attributes:
+      label: Computer
+      options:
+        - macOS
+        - Linux (X11)
+        - Linux (Wayland)
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Buzz Party version or commit, the OS version, and the PCSX2 build (ours or stock, and its version).
+      placeholder: Buzz Party 1.0.0, macOS 26.1, pcsx2-buzzparty 2.8.2
+  - type: input
+    id: game
+    attributes:
+      label: Game
+      description: Which Buzz! game and region, if it's about a game.
+      placeholder: Buzz! Junior Jungle Party (PAL)
+  - type: input
+    id: phones
+    attributes:
+      label: Phones
+      description: Which phones and browsers, if it's about the buzzers.
+      placeholder: iPhone 15 (Safari), Pixel 8 (Chrome)
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: The app's output (`~/.buzz-party.log` on a console PC, or the terminal running `npm start`).
+      render: text
