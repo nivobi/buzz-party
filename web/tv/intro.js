@@ -208,11 +208,14 @@
     const big = Math.round(Math.min(W * 0.11, H * 0.2));
     const small = Math.round(big * 0.36);
     const cx = W / 2;
-    const cy = H * 0.42;
+    // Centre the whole block (top of BUZZ! to bottom of PARTY BOX) on the screen.
+    // Capitals reach about 0.36 of the font size above and below the middle line.
+    const d = big * 0.55 + small * 0.7;               // between the two lines' middles
+    const mid = H / 2 + (big - small) * 0.18;         // middle of the two lines
     ctx.save();
     ctx.globalAlpha = a;
-    glowText('BUZZ!', cx, cy - small * 0.7, big, 0.12);
-    glowText('PARTY BOX', cx, cy + big * 0.55, small, 0.45);
+    glowText('BUZZ!', cx, mid - d / 2, big, 0.12);
+    glowText('PARTY BOX', cx, mid + d / 2, small, 0.45);
     ctx.restore();
   }
 
