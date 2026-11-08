@@ -142,6 +142,8 @@ export interface LaunchOptions {
   biosFile: string;
   /** Set when the TV is a separate (extended) display. */
   tvBounds?: Rect;
+  /** The TV's height in real pixels (for the upscaling). */
+  tvHeightPx?: number;
 }
 
 type Child = ReturnType<ProcessDeps['spawnPcsx2']>;
@@ -183,6 +185,7 @@ export class Pcsx2Manager {
       biosDir: l.biosDir,
       biosFile: l.biosFile,
       startFullscreen: !l.tvBounds,
+      tvHeightPx: l.tvHeightPx,
       ledUdpPort: this.o.ledUdpPort,
     });
     const iniPath = pcsx2IniPath(this.o.dataDir);
@@ -242,12 +245,15 @@ export class Pcsx2Manager {
   }
 
   focus(): void {
-    if (this.pid !== null) this.o.bridge.focusPid(this.pid);
+    // Not once stop() has begun: the closing screen comes up over PCSX2 while it exits.
+    if (this.pid !== null && this.cancelledId !== this.launchId) this.o.bridge.focusPid(this.pid);
   }
 
   async stop(): Promise<void> {
     this.cancelledId = this.launchId;
     this.tryingPrimary = null;
+    if (this.watchdog) clearInterval(this.watchdog);
+    this.watchdog = null;
     const child = this.child;
     if (!child) return;
     const exited = new Promise<boolean>(r => child.once('exit', () => r(true)));

@@ -88,7 +88,7 @@ export class Controller {
   update(u: Partial<Pick<ControllerDeps, 'games' | 'problems' | 'join' | 'lang' | 'sound' | 'wifi'>>): void {
     Object.assign(this.d, u);
     this.selected = Math.min(this.selected, Math.max(0, this.d.games.length - 1));
-    if (this.mode !== 'game' && this.mode !== 'launching') this.mode = this.homeMode();
+    if (!this.inGame()) this.mode = this.homeMode();
     this.changed();
   }
 
@@ -203,6 +203,10 @@ export class Controller {
     } else if (action === 'back') {
       if (this.mode === 'game' || this.mode === 'launching') {
         this.d.presser.releaseAll();
+        // PCSX2 can take seconds to exit; say so at once instead of sitting on the game.
+        this.mode = 'stopping';
+        this.applyLights(LIGHTS_OFF);
+        this.changed();
         void this.d.runner.stop().finally(() => this.gameEnded());
       }
     } else if (action === 'off') {
@@ -232,9 +236,14 @@ export class Controller {
     }
   }
 
+  /** A game is starting, running or closing: the home screens wait. */
+  private inGame(): boolean {
+    return this.mode === 'game' || this.mode === 'launching' || this.mode === 'stopping';
+  }
+
   private gameEnded(): void {
     this.d.presser.releaseAll();
-    if (this.mode !== 'game' && this.mode !== 'launching') return;
+    if (!this.inGame()) return;
     this.mode = this.homeMode();
     this.current = null;
     this.applyLights(LIGHTS_OFF);

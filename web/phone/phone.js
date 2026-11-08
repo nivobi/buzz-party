@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   const SLOT_COLORS = { 1: 'var(--blue)', 2: 'var(--orange)', 3: 'var(--green)', 4: '#c9a800' };
-  const STATUS_KEYS = { setup: 'phone.status.setup', picker: 'phone.status.picker', waiting: 'phone.status.waiting', launching: 'phone.status.launching', wifi: 'phone.status.wifi' };
+  const STATUS_KEYS = { setup: 'phone.status.setup', picker: 'phone.status.picker', waiting: 'phone.status.waiting', launching: 'phone.status.launching', stopping: 'phone.status.stopping', wifi: 'phone.status.wifi' };
 
   // A token survives reloads so the phone gets its player back.
   let token;
@@ -88,8 +88,9 @@
     if (state.qr) $('invite-qr').src = state.qr;
     $('invite-url').textContent = state.joinUrl;
     const inGame = state.mode === 'game' || state.mode === 'launching';
+    const closing = state.mode === 'stopping';
     document.querySelector('[data-act="back"]').hidden = !inGame;
-    document.querySelector('[data-act="off"]').hidden = inGame;
+    document.querySelector('[data-act="off"]').hidden = inGame || closing;
   }
 
   function renderSlots() {
@@ -181,24 +182,18 @@
     });
   }
 
-  // Keep the screen on where the browser allows it.
-  let wakeLock = null;
-  async function keepAwake() {
-    try {
-      wakeLock = await navigator.wakeLock?.request('screen');
-    } catch {
-      wakeLock = null;
-    }
-  }
+  // Keep the screen on during the game (keep-awake.js: wakeLock on HTTPS, else a looping video).
+  const awake = window.BuzzKeepAwake?.create({ document, navigator, secure: window.isSecureContext });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) releaseAll();
-    else keepAwake();
+    else awake?.resume();
   });
-  document.addEventListener('pointerdown', () => { if (!wakeLock) keepAwake(); }, { once: true });
+  // Every tap, not just the first: if a start was refused, the next tap retries.
+  document.addEventListener('pointerdown', () => { awake?.start(); });
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('gesturestart', e => e.preventDefault());
   document.addEventListener('dblclick', e => e.preventDefault());
 
-  keepAwake();
+  if (window.isSecureContext) awake?.start(); // wakeLock needs no tap
   connect();
 })();
