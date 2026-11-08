@@ -146,9 +146,9 @@ right, **red** plays. To quit Buzz Party, press **Cmd+Q** on the computer.
 The Linux support is meant for a small "console" PC that boots straight into
 the app. It runs on one such PC: Arch Linux, X11 with Openbox, an NVIDIA GTX 960,
 and the PCSX2 AppImages. The packaged app starts, PCSX2 opens fullscreen on the
-TV with the buzzers working, and the test suite passes (also on Ubuntu 24.04).
-Not tried yet: sound over HDMI and "Turn off" from a phone. Expect rough edges
-on other setups and please report what you find.
+TV with the buzzers working, "Turn off" from a phone powers the PC off, and the
+test suite passes (also on Ubuntu 24.04). Not tried yet: sound over HDMI. Expect
+rough edges on other setups and please report what you find.
 
 What you need:
 

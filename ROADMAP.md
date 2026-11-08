@@ -27,8 +27,8 @@ an issue first so we can talk about it.
 - **Linux, first pass:** a `/dev/uinput` key helper and bridge, finding and
   starting PCSX2 (AppImage or `pcsx2-qt`), `xdotool` window focus, and
   `npm run dist:linux`. Runs on a console PC (Arch, X11 + Openbox, GTX 960):
-  the packaged app, PCSX2 fullscreen and the buzzers work. Sound over HDMI and
-  "Turn off" are not tried yet (see "Linux and console mode").
+  the packaged app, PCSX2 fullscreen, the buzzers and "Turn off" work. Sound
+  over HDMI is not tried yet (see "Linux and console mode").
 
 ## 1. Stabilise
 
@@ -72,7 +72,8 @@ no desktop.
       `pcsx2-qt`, so the app now matches any process name starting with `pcsx2`.
 - [ ] Sound over HDMI on a TV.
 - [ ] Document an automatic-login-and-start setup for a minimal install.
-- [ ] "Turn off" from a phone shuts the machine down in kiosk mode.
+- [x] "Turn off" from a phone shuts the machine down in kiosk mode (the app
+      quits, and the session's start script powers off).
 - [x] First-run language chooser: phone, mouse or keyboard (left/right and Enter).
 - [ ] Remote-control (HDMI-CEC) navigation for the chooser.
 - [x] Intro: plays on every launch by default; `"intro": "boot"` in
