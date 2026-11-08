@@ -1,7 +1,9 @@
 // Writes web/phone/keep-awake.js with the tiny video embedded. Run from the repo root:
 //   node scripts/make-keep-awake.mjs awake.mp4
 // awake.mp4 was made with:
-//   ffmpeg -f lavfi -i color=c=black:s=16x16:r=2 -f lavfi -i anullsrc=r=8000:cl=mono -t 2 \n//     -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -tune stillimage \n//     -c:a aac -b:a 8k -shortest -movflags +faststart awake.mp4
+//   ffmpeg -f lavfi -i color=c=black:s=16x16:r=2 -f lavfi -i anullsrc=r=8000:cl=mono -t 2
+//     -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -tune stillimage
+//     -c:a aac -b:a 8k -shortest -movflags +faststart awake.mp4
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const b64 = readFileSync(process.argv[2]).toString('base64');
